@@ -1,0 +1,46 @@
+{
+  "name": "sorveteria-pedidos",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "db:generate": "dotenv -e .env.local -- prisma generate",
+    "db:migrate": "dotenv -e .env.local -- prisma migrate dev",
+    "db:deploy": "dotenv -e .env.local -- prisma migrate deploy",
+    "db:studio": "dotenv -e .env.local -- prisma studio",
+    "db:push": "dotenv -e .env.local -- prisma db push",
+    "db:rls": "dotenv -e .env.local -- tsx scripts/apply-rls.ts",
+    "create-admin": "dotenv -e .env.local -- tsx scripts/create-admin.ts",
+    "postinstall": "prisma generate"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.7.0",
+    "@supabase/ssr": "^0.10.3",
+    "@supabase/supabase-js": "^2.107.0",
+    "next": "^16.2.7",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "server-only": "^0.0.1"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.2.0",
+    "@tailwindcss/postcss": "^4.0.0",
+    "@types/node": "^20.17.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "dotenv-cli": "^11.0.0",
+    "eslint": "^9.18.0",
+    "eslint-config-next": "^16.2.7",
+    "prisma": "^6.19.3",
+    "tailwindcss": "^4.0.0",
+    "tsx": "^4.22.4",
+    "typescript": "^5.7.0"
+  }
+}

@@ -1,0 +1,468 @@
+// ============================================================================
+// Sistema de Pedidos + Cardápio Digital — Sorveteria (PRD v3, single-tenant)
+// Prisma Schema · PostgreSQL (Supabase)
+// ----------------------------------------------------------------------------
+// Convenções adotadas:
+//  - createdAt / updatedAt em todas as tabelas.
+//  - Soft delete (deletedAt) em entidades de catálogo/cadastro que o admin
+//    gerencia e pode "apagar" sem perder histórico (categorias, produtos,
+//    clientes, etc.). Registros transacionais (pedidos, pagamentos, jobs de
+//    impressão) NÃO usam soft delete — eles são preservados para auditoria e
+//    o "cancelamento" é apenas um status.
+//  - Valores monetários em Decimal(10,2) para evitar erros de ponto flutuante.
+//  - Snapshots: itens do pedido e dados de entrega guardam cópia dos valores
+//    no momento da compra, para que edições/soft-delete no catálogo não
+//    alterem pedidos antigos.
+//  - Nomes das tabelas em snake_case (@@map) seguindo o esboço do PRD.
+// ============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+/// Forma de retirada do pedido.
+enum TipoEntrega {
+  RETIRADA
+  DELIVERY
+}
+
+/// Forma de pagamento. CARTAO fica como ponto de extensão (fora do MVP).
+enum FormaPagamento {
+  PIX
+  DINHEIRO
+  CARTAO // fase 2 — reservado
+}
+
+/// Ciclo de vida do pedido. PIX começa em AGUARDANDO_PAGAMENTO; dinheiro
+/// entra direto em NA_FILA. SAIU_PARA_ENTREGA/ENTREGUE cobrem a tela de status.
+enum StatusPedido {
+  AGUARDANDO_PAGAMENTO
+  PAGO
+  NA_FILA
+  IMPRESSO
+  EM_PREPARO
+  PRONTO
+  SAIU_PARA_ENTREGA
+  ENTREGUE
+  CANCELADO
+}
+
+/// Estado da cobrança no PSP. Idempotente; suporta estorno total/parcial.
+enum StatusPagamento {
+  AGUARDANDO
+  CONFIRMADO
+  EXPIRADO
+  CANCELADO
+  ESTORNADO
+  ERRO
+}
+
+/// Estado de um job na fila de impressão (resiliência: retry + monitor).
+enum StatusImpressao {
+  PENDENTE
+  IMPRESSO
+  ERRO
+}
+
+/// Tipo de seleção de um grupo de opções do produto montável.
+enum TipoGrupoOpcao {
+  UNICO // escolhe 1 (ex.: tamanho/sabor base)
+  MULTIPLO // escolhe vários (ex.: acompanhamentos)
+}
+
+/// Modo de cálculo da taxa de entrega configurado na loja.
+enum TipoTaxa {
+  FIXA
+  POR_BAIRRO
+}
+
+/// Papel do usuário do backoffice.
+enum PapelUsuario {
+  ADMIN
+  COZINHA
+}
+
+// ============================================================================
+// CATÁLOGO
+// ============================================================================
+
+/// Categoria do cardápio (ex.: "Açaí", "Sorvetes", "Bebidas").
+/// Ordenável e desativável; soft delete preserva histórico de produtos.
+model Categoria {
+  id        String    @id @default(uuid())
+  nome      String
+  ordem     Int       @default(0) // ordem de exibição no cardápio
+  ativo     Boolean   @default(true)
+  produtos  Produto[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? // soft delete
+
+  @@index([ativo])
+  @@index([ordem])
+  @@map("categorias")
+}
+
+/// Produto do cardápio. Quando `montavel = true`, usa tamanhos + grupos de
+/// opções para o fluxo "monte seu açaí"; senão, vende pelo `preco` direto.
+model Produto {
+  id          String   @id @default(uuid())
+  nome        String
+  descricao   String?
+  foto        String? // URL da imagem (Supabase Storage)
+  preco       Decimal? @db.Decimal(10, 2) // preço fixo p/ produtos NÃO montáveis
+  disponivel  Boolean  @default(true) // flag "acabou o produto"
+  montavel    Boolean  @default(false)
+
+  categoriaId String
+  categoria   Categoria @relation(fields: [categoriaId], references: [id])
+
+  // Estrutura do montável (só preenchida quando montavel = true)
+  tamanhos      Tamanho[]
+  gruposOpcoes  GrupoOpcao[]
+
+  // Linhas de pedido que referenciam este produto (mantém histórico)
+  itensPedido ItemPedido[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? // soft delete
+
+  @@index([categoriaId])
+  @@index([disponivel])
+  @@map("produtos")
+}
+
+/// Tamanho de um produto montável (ex.: "500ml" com preço base 18,00).
+model Tamanho {
+  id        String   @id @default(uuid())
+  nome      String
+  precoBase Decimal  @db.Decimal(10, 2)
+  ordem     Int      @default(0)
+
+  produtoId String
+  produto   Produto  @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([produtoId])
+  @@map("tamanhos")
+}
+
+/// Grupo de opções de um montável (ex.: "Acompanhamentos": min 0, max 5,
+/// cota grátis 3). Define as regras de seleção.
+model GrupoOpcao {
+  id          String         @id @default(uuid())
+  nome        String
+  tipo        TipoGrupoOpcao
+  min         Int            @default(0)
+  max         Int? // null = sem limite
+  cotaGratis  Int            @default(0) // qtd de itens grátis antes de cobrar
+  obrigatorio Boolean        @default(false)
+  ordem       Int            @default(0)
+
+  produtoId String
+  produto   Produto      @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+  itens     ItemOpcao[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([produtoId])
+  @@map("grupos_opcoes")
+}
+
+/// Item dentro de um grupo de opções (ex.: "Morango", + R$2,00).
+/// `disponivel` resolve "acabou o sabor" no nível do item.
+model ItemOpcao {
+  id         String   @id @default(uuid())
+  nome       String
+  precoExtra Decimal  @default(0) @db.Decimal(10, 2)
+  disponivel Boolean  @default(true)
+  ordem      Int      @default(0)
+
+  grupoId String
+  grupo   GrupoOpcao @relation(fields: [grupoId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([grupoId])
+  @@index([disponivel])
+  @@map("itens_opcao")
+}
+
+// ============================================================================
+// CLIENTES E ENDEREÇOS
+// ============================================================================
+
+/// Cliente final. Login simples por nome + telefone (sem OTP no MVP).
+/// `telefone` é único e serve de identificador de sessão recorrente.
+/// `bloqueado` apoia a mitigação anti-trote do fluxo Dinheiro.
+model Cliente {
+  id        String     @id @default(uuid())
+  nome      String
+  telefone  String     @unique
+  bloqueado Boolean    @default(false)
+  enderecos Endereco[]
+  pedidos   Pedido[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([telefone])
+  @@map("clientes")
+}
+
+/// Endereço salvo de um cliente (para delivery). O pedido também guarda um
+/// snapshot dos campos, então editar/apagar aqui não afeta pedidos antigos.
+model Endereco {
+  id          String  @id @default(uuid())
+  endereco    String
+  complemento String?
+  referencia  String?
+  bairro      String?
+
+  clienteId String
+  cliente   Cliente  @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  pedidos   Pedido[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([clienteId])
+  @@map("enderecos")
+}
+
+// ============================================================================
+// CONFIGURAÇÃO DA LOJA E ENTREGA
+// ============================================================================
+
+/// Zona de entrega por bairro (usada quando tipoTaxa = POR_BAIRRO).
+model ZonaEntrega {
+  id            String   @id @default(uuid())
+  bairro        String
+  taxa          Decimal  @db.Decimal(10, 2)
+  tempoEstimado Int? // minutos estimados de entrega
+  ativo         Boolean  @default(true)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([ativo])
+  @@map("zonas_entrega")
+}
+
+/// Configuração única da loja (single-tenant). Mantida como linha única.
+/// `horarios` em JSON (ex.: { seg: ["10:00","22:00"], ... }).
+/// `pausado` permite "pausar pedidos agora" independente do horário.
+model ConfigLoja {
+  id           String    @id @default(uuid())
+  nomeLoja     String?
+  horarios     Json? // grade de funcionamento
+  tipoTaxa     TipoTaxa  @default(FIXA)
+  taxaFixa     Decimal?  @db.Decimal(10, 2) // usado quando tipoTaxa = FIXA
+  pedidoMinimo Decimal?  @db.Decimal(10, 2)
+  pausado      Boolean   @default(false) // pausa manual de pedidos
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("config_loja")
+}
+
+/// Banner promocional exibido no cardápio (US19).
+model Banner {
+  id        String    @id @default(uuid())
+  titulo    String?
+  imagem    String // URL da imagem
+  link      String?
+  ordem     Int       @default(0)
+  ativo     Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([ativo])
+  @@map("banners")
+}
+
+// ============================================================================
+// PEDIDOS
+// ============================================================================
+
+/// Pedido. Núcleo do sistema: criado no próprio app, dispara fila de
+/// impressão e aparece no KDS. Guarda snapshot dos dados de entrega para
+/// preservar o histórico independente de mudanças no cadastro do cliente.
+model Pedido {
+  id             String         @id @default(uuid())
+  numero         Int            @unique @default(autoincrement()) // nº curto p/ cozinha/cliente
+  status         StatusPedido   @default(AGUARDANDO_PAGAMENTO)
+  tipoEntrega    TipoEntrega
+  formaPagamento FormaPagamento
+
+  // Valores (snapshot no momento do pedido)
+  subtotal     Decimal  @db.Decimal(10, 2)
+  taxaEntrega  Decimal  @default(0) @db.Decimal(10, 2)
+  total        Decimal  @db.Decimal(10, 2)
+  trocoPara    Decimal? @db.Decimal(10, 2) // troco p/ pagamento em dinheiro
+
+  // Cliente
+  clienteId String
+  cliente   Cliente @relation(fields: [clienteId], references: [id])
+
+  // Endereço de entrega: relação opcional + snapshot dos campos
+  enderecoId          String?
+  endereco            Endereco? @relation(fields: [enderecoId], references: [id])
+  enderecoSnapshot    String?
+  complementoSnapshot String?
+  referenciaSnapshot  String?
+  bairroSnapshot      String?
+
+  observacao String? // observação geral do pedido
+
+  // Relações
+  itens       ItemPedido[]
+  pagamentos  Pagamento[]
+  jobsImpressao FilaImpressao[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([clienteId])
+  @@index([createdAt])
+  @@map("pedidos")
+}
+
+/// Item de um pedido. Para montáveis, `opcoes` guarda em JSON o detalhe das
+/// escolhas (grupos/itens/quantidades) que vai para a comanda e o KDS.
+/// Campos *Snapshot preservam nome/preço caso o produto mude depois.
+model ItemPedido {
+  id            String   @id @default(uuid())
+  quantidade    Int      @default(1)
+  precoUnitario Decimal  @db.Decimal(10, 2) // preço calculado por unidade
+  precoTotal    Decimal  @db.Decimal(10, 2) // precoUnitario * quantidade
+  tamanho       String? // nome do tamanho escolhido (snapshot)
+  opcoes        Json? // detalhe das opções selecionadas (montável)
+  observacao    String?
+
+  // Snapshot do produto
+  nomeProdutoSnapshot String
+
+  // Relações
+  pedidoId  String
+  pedido    Pedido   @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+  produtoId String?
+  produto   Produto? @relation(fields: [produtoId], references: [id])
+
+  // Substituição de item em falta (5.13)
+  substituido          Boolean @default(false)
+  nomeProdutoOriginal  String? // o que foi pedido originalmente, se houve troca
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([pedidoId])
+  @@index([produtoId])
+  @@map("itens_pedido")
+}
+
+// ============================================================================
+// PAGAMENTOS
+// ============================================================================
+
+/// Pagamento de um pedido. Para PIX, integra com o PSP (txid, QR, copia-e-cola)
+/// e é confirmado por webhook (com polling de backup). Suporta estorno total
+/// no cancelamento de pedido já pago. Um pedido pode ter mais de um registro
+/// (ex.: nova tentativa de cobrança).
+model Pagamento {
+  id    String         @id @default(uuid())
+  forma FormaPagamento
+  status StatusPagamento @default(AGUARDANDO)
+  valor Decimal        @db.Decimal(10, 2)
+
+  // Dados do PSP (PIX)
+  pspTxid      String?  @unique // idempotência da cobrança
+  pixQrCode    String? // imagem/payload do QR
+  pixCopiaCola String? // código copia-e-cola
+
+  pedidoId String
+  pedido   Pedido @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+
+  expiraEm     DateTime? // expiração da cobrança PIX (~15 min)
+  confirmadoEm DateTime?
+  estornadoEm  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([pedidoId])
+  @@index([status])
+  @@index([pspTxid])
+  @@map("pagamentos")
+}
+
+// ============================================================================
+// IMPRESSÃO (FILA + KDS)
+// ============================================================================
+
+/// Job da fila de impressão. Garante resiliência: se a impressora estiver
+/// offline, o job fica PENDENTE com retry e o KDS alerta a cozinha. O admin
+/// pode reimprimir (gera novo job). `conteudo` pode guardar o payload ESC/POS.
+model FilaImpressao {
+  id         String          @id @default(uuid())
+  status     StatusImpressao @default(PENDENTE)
+  tentativas Int             @default(0)
+  ultimoErro String?
+  conteudo   Json? // payload da comanda (opcional)
+
+  pedidoId String
+  pedido   Pedido @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+
+  impressoEm DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([status])
+  @@index([pedidoId])
+  @@map("fila_impressao")
+}
+
+// ============================================================================
+// BACKOFFICE
+// ============================================================================
+
+/// Usuário do painel administrativo / cozinha (login próprio com papéis).
+/// `senhaHash` armazena o hash quando não se usa Supabase Auth diretamente.
+model UsuarioAdmin {
+  id        String       @id @default(uuid())
+  nome      String
+  email     String       @unique
+  senhaHash String?
+  papel     PapelUsuario @default(COZINHA)
+  ativo     Boolean      @default(true)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([papel])
+  @@map("usuarios_admin")
+}
