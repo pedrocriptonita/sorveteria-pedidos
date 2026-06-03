@@ -17,7 +17,11 @@
     "db:studio": "dotenv -e .env.local -- prisma studio",
     "db:push": "dotenv -e .env.local -- prisma db push",
     "db:rls": "dotenv -e .env.local -- tsx scripts/apply-rls.ts",
+    "db:seed": "dotenv -e .env.local -- tsx scripts/seed-catalogo.ts",
     "create-admin": "dotenv -e .env.local -- tsx scripts/create-admin.ts",
+    "validate:psp": "dotenv -e .env.local -- node --conditions=react-server --import tsx scripts/validate-psp.ts",
+    "validate:print": "dotenv -e .env.local -- node --conditions=react-server --import tsx scripts/validate-print.ts",
+    "poll:pagamentos": "dotenv -e .env.local -- node --conditions=react-server --import tsx scripts/poll-pagamentos.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {

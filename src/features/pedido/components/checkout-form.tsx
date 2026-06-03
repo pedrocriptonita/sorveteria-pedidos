@@ -1,0 +1,259 @@
+"use client";
+
+import { useMemo, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { useCart } from "@/features/catalogo/cart/cart-provider";
+import { criarPedido } from "../actions";
+import type {
+  ConfigLojaView,
+  FormaPagamento,
+  TipoEntrega,
+} from "../types";
+import { formatBRL } from "@/lib/format";
+
+const CLIENTE_KEY = "sorveteria:cliente:v1";
+
+/** Lê o cliente recorrente do localStorage (client-only; vazio no SSR). */
+function lerCliente(): { nome: string; telefone: string } {
+  if (typeof window === "undefined") return { nome: "", telefone: "" };
+  try {
+    const raw = window.localStorage.getItem(CLIENTE_KEY);
+    if (raw) {
+      const c = JSON.parse(raw) as { nome?: string; telefone?: string };
+      return { nome: c.nome ?? "", telefone: c.telefone ?? "" };
+    }
+  } catch {
+    // ignora
+  }
+  return { nome: "", telefone: "" };
+}
+
+const inputClass =
+  "rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900 dark:border-neutral-700 dark:bg-neutral-900 dark:focus:border-white";
+
+export function CheckoutForm({ config }: { config: ConfigLojaView | null }) {
+  const router = useRouter();
+  const { itens, subtotal, limpar, pronto } = useCart();
+  const [pending, startTransition] = useTransition();
+  const [erro, setErro] = useState<string | null>(null);
+
+  const [nome, setNome] = useState(() => lerCliente().nome);
+  const [telefone, setTelefone] = useState(() => lerCliente().telefone);
+  const [tipoEntrega, setTipoEntrega] = useState<TipoEntrega>("RETIRADA");
+  const [endereco, setEndereco] = useState("");
+  const [complemento, setComplemento] = useState("");
+  const [bairro, setBairro] = useState("");
+  const [referencia, setReferencia] = useState("");
+  const [formaPagamento, setFormaPagamento] = useState<FormaPagamento>("PIX");
+  const [trocoPara, setTrocoPara] = useState("");
+  const [observacao, setObservacao] = useState("");
+
+  const taxa = useMemo(() => {
+    if (tipoEntrega === "RETIRADA") return 0;
+    if (config?.tipoTaxa === "FIXA") return config.taxaFixa ?? 0;
+    return null; // POR_BAIRRO: calculada no servidor
+  }, [tipoEntrega, config]);
+
+  const total = taxa === null ? null : subtotal + taxa;
+
+  function enviar() {
+    setErro(null);
+    if (itens.length === 0) {
+      setErro("Seu carrinho está vazio.");
+      return;
+    }
+
+    startTransition(async () => {
+      const res = await criarPedido({
+        cliente: { nome, telefone },
+        tipoEntrega,
+        endereco:
+          tipoEntrega === "DELIVERY"
+            ? { endereco, complemento, referencia, bairro }
+            : undefined,
+        formaPagamento,
+        trocoPara:
+          formaPagamento === "DINHEIRO" && trocoPara
+            ? Number(trocoPara.replace(",", "."))
+            : undefined,
+        observacao,
+        linhas: itens.map((i) => ({
+          produtoId: i.produtoId,
+          config: i.config,
+          quantidade: i.quantidade,
+        })),
+      });
+
+      if (!res.ok) {
+        setErro(res.erro);
+        return;
+      }
+
+      try {
+        localStorage.setItem(CLIENTE_KEY, JSON.stringify({ nome, telefone }));
+      } catch {
+        // ignora
+      }
+      limpar();
+      router.push(`/pedido/${res.pedidoId}`);
+    });
+  }
+
+  if (!pronto) {
+    return <p className="py-16 text-center text-neutral-500">Carregando…</p>;
+  }
+  if (itens.length === 0) {
+    return (
+      <p className="py-16 text-center text-neutral-500">
+        Carrinho vazio. Volte ao cardápio para adicionar itens.
+      </p>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-6">
+      <section className="flex flex-col gap-3">
+        <h2 className="font-semibold">Seus dados</h2>
+        <input
+          className={inputClass}
+          placeholder="Nome"
+          value={nome}
+          onChange={(e) => setNome(e.target.value)}
+        />
+        <input
+          className={inputClass}
+          placeholder="Telefone (WhatsApp)"
+          inputMode="tel"
+          value={telefone}
+          onChange={(e) => setTelefone(e.target.value)}
+        />
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="font-semibold">Entrega</h2>
+        <div className="flex gap-2">
+          {(["RETIRADA", "DELIVERY"] as const).map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setTipoEntrega(t)}
+              className={`flex-1 rounded-md border px-3 py-2 text-sm ${
+                tipoEntrega === t
+                  ? "border-neutral-900 bg-neutral-900 text-white dark:border-white dark:bg-white dark:text-neutral-900"
+                  : "border-neutral-300 dark:border-neutral-700"
+              }`}
+            >
+              {t === "RETIRADA" ? "Retirar na loja" : "Entrega"}
+            </button>
+          ))}
+        </div>
+
+        {tipoEntrega === "DELIVERY" ? (
+          <div className="flex flex-col gap-2">
+            <input
+              className={inputClass}
+              placeholder="Endereço (rua e número)"
+              value={endereco}
+              onChange={(e) => setEndereco(e.target.value)}
+            />
+            <input
+              className={inputClass}
+              placeholder="Bairro"
+              value={bairro}
+              onChange={(e) => setBairro(e.target.value)}
+            />
+            <input
+              className={inputClass}
+              placeholder="Complemento (opcional)"
+              value={complemento}
+              onChange={(e) => setComplemento(e.target.value)}
+            />
+            <input
+              className={inputClass}
+              placeholder="Ponto de referência (opcional)"
+              value={referencia}
+              onChange={(e) => setReferencia(e.target.value)}
+            />
+          </div>
+        ) : null}
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="font-semibold">Pagamento</h2>
+        <div className="flex gap-2">
+          {(["PIX", "DINHEIRO"] as const).map((f) => (
+            <button
+              key={f}
+              type="button"
+              onClick={() => setFormaPagamento(f)}
+              className={`flex-1 rounded-md border px-3 py-2 text-sm ${
+                formaPagamento === f
+                  ? "border-neutral-900 bg-neutral-900 text-white dark:border-white dark:bg-white dark:text-neutral-900"
+                  : "border-neutral-300 dark:border-neutral-700"
+              }`}
+            >
+              {f === "PIX" ? "PIX" : "Dinheiro"}
+            </button>
+          ))}
+        </div>
+
+        {formaPagamento === "PIX" ? (
+          <p className="text-sm text-neutral-500">
+            Você vai pagar pelo QR Code / copia-e-cola na próxima tela. A
+            confirmação é automática.
+          </p>
+        ) : (
+          <input
+            className={inputClass}
+            placeholder="Troco para quanto? (opcional)"
+            inputMode="decimal"
+            value={trocoPara}
+            onChange={(e) => setTrocoPara(e.target.value)}
+          />
+        )}
+      </section>
+
+      <section className="flex flex-col gap-2">
+        <textarea
+          className={inputClass}
+          placeholder="Observação do pedido (opcional)"
+          rows={2}
+          value={observacao}
+          onChange={(e) => setObservacao(e.target.value)}
+        />
+      </section>
+
+      <section className="flex flex-col gap-1 border-t border-neutral-200 pt-4 text-sm dark:border-neutral-800">
+        <div className="flex justify-between">
+          <span>Subtotal</span>
+          <span>{formatBRL(subtotal)}</span>
+        </div>
+        <div className="flex justify-between">
+          <span>Taxa de entrega</span>
+          <span>
+            {tipoEntrega === "RETIRADA"
+              ? formatBRL(0)
+              : taxa === null
+                ? "calculada na confirmação"
+                : formatBRL(taxa)}
+          </span>
+        </div>
+        <div className="flex justify-between text-base font-bold">
+          <span>Total</span>
+          <span>{total === null ? formatBRL(subtotal) : formatBRL(total)}</span>
+        </div>
+      </section>
+
+      {erro ? <p className="text-sm text-red-600">{erro}</p> : null}
+
+      <button
+        type="button"
+        onClick={enviar}
+        disabled={pending}
+        className="rounded-md bg-neutral-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-neutral-700 disabled:opacity-60 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
+      >
+        {pending ? "Enviando…" : "Confirmar pedido"}
+      </button>
+    </div>
+  );
+}

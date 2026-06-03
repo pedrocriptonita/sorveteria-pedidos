@@ -23,6 +23,19 @@ export const env = {
   // Supabase — públicas (browser + server)
   supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
   supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
+
+  // PSP de PIX (server-only)
+  pspProvider: process.env.PSP_PROVIDER ?? "asaas",
+  pspBaseUrl: process.env.PSP_BASE_URL ?? "",
+  pspApiKey: process.env.PSP_API_KEY ?? "",
+  pspWebhookSecret: process.env.PSP_WEBHOOK_SECRET ?? "",
+  /** CPF/CNPJ da loja usado como cliente da cobrança (cliente não digita CPF). */
+  pspCpfCnpj: process.env.PSP_CPF_CNPJ ?? "",
+  pixExpiracaoSegundos: Number(process.env.PIX_EXPIRACAO_SEGUNDOS ?? "900"),
+
+  // Impressão (server-only)
+  printMode: process.env.PRINT_MODE ?? "agent",
+  printAgentToken: process.env.PRINT_AGENT_TOKEN ?? "",
 } as const;
 
 /** Chave service_role — SOMENTE no servidor. Lança se usada sem configurar. */
@@ -36,4 +49,22 @@ export function getSupabasePublicConfig(): { url: string; anonKey: string } {
     url: required("NEXT_PUBLIC_SUPABASE_URL", env.supabaseUrl),
     anonKey: required("NEXT_PUBLIC_SUPABASE_ANON_KEY", env.supabaseAnonKey),
   };
+}
+
+/** Config do PSP para chamadas autenticadas (server-only). Lança se faltar. */
+export function getPspConfig(): {
+  provider: string;
+  baseUrl: string;
+  apiKey: string;
+} {
+  return {
+    provider: env.pspProvider,
+    baseUrl: required("PSP_BASE_URL", env.pspBaseUrl),
+    apiKey: required("PSP_API_KEY", env.pspApiKey),
+  };
+}
+
+/** Token de autenticação do agente de impressão (server-only). Lança se faltar. */
+export function getPrintAgentToken(): string {
+  return required("PRINT_AGENT_TOKEN", env.printAgentToken);
 }
