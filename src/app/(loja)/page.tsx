@@ -47,10 +47,12 @@ export default async function CardapioPage() {
             {categoria.nome}
           </h2>
 
-          {/* Grid 2 colunas */}
-          <div className="grid grid-cols-2 gap-3">
+          {/* Fileira única — scroll horizontal (esquerda ↔ direita) */}
+          <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 no-scrollbar">
             {categoria.produtos.map((produto) => (
-              <ProdutoCard key={produto.id} produto={produto} />
+              <div key={produto.id} className="w-36 shrink-0 snap-start sm:w-40">
+                <ProdutoCard produto={produto} />
+              </div>
             ))}
           </div>
         </section>
