@@ -57,6 +57,7 @@ export async function getProdutoAdmin(
     id: p.id,
     nome: p.nome,
     descricao: p.descricao,
+    foto: p.foto,
     preco: p.preco === null ? null : Number(p.preco),
     montavel: p.montavel,
     disponivel: p.disponivel,

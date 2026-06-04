@@ -45,6 +45,7 @@ export interface GrupoAdmin {
 
 export interface ProdutoAdminFull extends ProdutoAdmin {
   categoriaId: string;
+  foto: string | null;
   tamanhos: TamanhoAdmin[];
   grupos: GrupoAdmin[];
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useCart } from "../cart/cart-provider";
 import type { ProdutoView } from "../types";
 import { formatBRL } from "@/lib/format";
@@ -10,7 +11,22 @@ function precoBaseMontavel(produto: ProdutoView): number {
   return Math.min(...produto.tamanhos.map((t) => t.precoBase));
 }
 
-export function ProdutoCard({ produto }: { produto: ProdutoView }) {
+function FotoPlaceholder() {
+  return (
+    <div className="w-full h-full flex items-center justify-center text-5xl">
+      🍧
+    </div>
+  );
+}
+
+export function ProdutoCard({
+  produto,
+  priority = false,
+}: {
+  produto: ProdutoView;
+  /** true para o primeiro card acima da dobra (melhora o LCP). */
+  priority?: boolean;
+}) {
   const { adicionar } = useCart();
   const indisponivel = !produto.disponivel;
 
@@ -28,55 +44,64 @@ export function ProdutoCard({ produto }: { produto: ProdutoView }) {
   }
 
   return (
-    <div className="flex gap-3 rounded-lg border border-neutral-200 p-3 dark:border-neutral-800">
-      <div
-        aria-hidden
-        className="flex h-16 w-16 shrink-0 items-center justify-center rounded-md bg-neutral-100 text-2xl dark:bg-neutral-800"
-      >
-        🍧
-      </div>
-
-      <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="font-medium">{produto.nome}</h3>
-          {indisponivel ? (
-            <span className="shrink-0 rounded bg-neutral-200 px-1.5 py-0.5 text-xs text-neutral-600 dark:bg-neutral-700 dark:text-neutral-300">
-              Indisponível
+    <div
+      className={`bg-white rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.06)] relative flex flex-col transition-transform active:scale-[0.98] ${
+        indisponivel ? "opacity-60" : ""
+      }`}
+    >
+      {/* Área da foto */}
+      <div className="relative aspect-square rounded-t-xl overflow-hidden bg-[#fdf1f0]">
+        {produto.foto ? (
+          <Image
+            src={produto.foto}
+            alt={produto.nome}
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 50vw, 200px"
+          />
+        ) : (
+          <FotoPlaceholder />
+        )}
+        {indisponivel ? (
+          <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
+            <span className="text-xs font-semibold text-muted-foreground bg-white/80 px-2 py-1 rounded-full">
+              Esgotado
             </span>
-          ) : null}
-        </div>
-
-        {produto.descricao ? (
-          <p className="line-clamp-2 text-sm text-neutral-600 dark:text-neutral-400">
-            {produto.descricao}
-          </p>
+          </div>
         ) : null}
-
-        <div className="mt-auto flex items-center justify-between gap-2 pt-1">
-          <span className="text-sm font-semibold">
-            {produto.montavel
-              ? `a partir de ${formatBRL(precoBaseMontavel(produto))}`
-              : formatBRL(produto.preco ?? 0)}
-          </span>
-
-          {indisponivel ? null : produto.montavel ? (
-            <Link
-              href={`/produto/${produto.id}`}
-              className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-neutral-700 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
-            >
-              Montar
-            </Link>
-          ) : (
-            <button
-              type="button"
-              onClick={adicionarSimples}
-              className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-neutral-700 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
-            >
-              Adicionar
-            </button>
-          )}
-        </div>
       </div>
+
+      {/* Info */}
+      <div className="p-3 pb-4 flex flex-col gap-1">
+        <h3 className="text-sm font-semibold text-foreground line-clamp-2 leading-tight">
+          {produto.nome}
+        </h3>
+        <span className="text-sm font-bold text-primary">
+          {produto.montavel
+            ? `a partir de ${formatBRL(precoBaseMontavel(produto))}`
+            : formatBRL(produto.preco ?? 0)}
+        </span>
+      </div>
+
+      {/* Botão + circular */}
+      {indisponivel ? null : produto.montavel ? (
+        <Link
+          href={`/produto/${produto.id}`}
+          className="absolute bottom-3 right-3 w-9 h-9 bg-primary text-white rounded-full flex items-center justify-center shadow-md hover:bg-primary/90 active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 z-10"
+          aria-label={`Montar ${produto.nome}`}
+        >
+          <span className="material-symbols-outlined text-[20px]">add</span>
+        </Link>
+      ) : (
+        <button
+          type="button"
+          onClick={adicionarSimples}
+          className="absolute bottom-3 right-3 w-9 h-9 bg-primary text-white rounded-full flex items-center justify-center shadow-md hover:bg-primary/90 active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 z-10"
+          aria-label={`Adicionar ${produto.nome}`}
+        >
+          <span className="material-symbols-outlined text-[20px]">add</span>
+        </button>
+      )}
     </div>
   );
 }

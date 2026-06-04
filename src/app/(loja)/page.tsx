@@ -1,7 +1,6 @@
 import { getCardapio } from "@/features/catalogo/data";
 import { ProdutoCard } from "@/features/catalogo/components/produto-card";
 
-// Cardápio lê o banco a cada requisição (disponibilidade muda em tempo real).
 export const dynamic = "force-dynamic";
 
 export default async function CardapioPage() {
@@ -9,22 +8,47 @@ export default async function CardapioPage() {
 
   if (cardapio.length === 0) {
     return (
-      <div className="py-16 text-center text-neutral-500">
-        <p className="text-lg font-medium">Cardápio em preparação 🍦</p>
+      <div className="py-16 text-center text-muted-foreground">
+        <p className="text-lg font-semibold">Cardápio em preparação 🍦</p>
         <p className="mt-1 text-sm">
-          Rode <code className="font-mono">npm run db:seed</code> para ver dados
-          de exemplo.
+          Rode <code className="font-mono text-xs">npm run db:seed</code> para
+          ver dados de exemplo.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-6">
+      {/* Pills de categoria — scroll horizontal */}
+      <div className="overflow-x-auto no-scrollbar -mx-4 px-4">
+        <div className="flex gap-3 w-max pb-1 pt-1">
+          {cardapio.map((cat, idx) => (
+            <a
+              key={cat.id}
+              href={`#cat-${cat.id}`}
+              className={`px-5 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all ${
+                idx === 0
+                  ? "bg-primary text-white shadow-sm"
+                  : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+              }`}
+            >
+              {cat.nome}
+            </a>
+          ))}
+        </div>
+      </div>
+
+      {/* Seções por categoria */}
       {cardapio.map((categoria) => (
-        <section key={categoria.id} className="flex flex-col gap-3">
-          <h2 className="text-xl font-bold">{categoria.nome}</h2>
-          <div className="flex flex-col gap-3">
+        <section key={categoria.id} id={`cat-${categoria.id}`} className="flex flex-col gap-3 scroll-mt-20">
+          <h2 className="flex items-center gap-2 text-lg font-bold text-foreground">
+            <span className="w-1 h-5 rounded-full bg-primary" aria-hidden />
+            {categoria.nome}
+          </h2>
+
+          {/* Grid 2 colunas */}
+          <div className="grid grid-cols-2 gap-3">
             {categoria.produtos.map((produto) => (
               <ProdutoCard key={produto.id} produto={produto} />
             ))}

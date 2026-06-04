@@ -2,32 +2,32 @@
 
 import Link from "next/link";
 import { useCart } from "../cart/cart-provider";
-import { formatBRL } from "@/lib/format";
 
 export function StoreHeader() {
-  const { totalItens, subtotal, pronto } = useCart();
+  const { totalItens, pronto } = useCart();
 
   return (
-    <header className="sticky top-0 z-10 border-b border-neutral-200 bg-background/90 backdrop-blur dark:border-neutral-800">
-      <div className="mx-auto flex max-w-3xl items-center justify-between gap-4 p-4">
-        <Link href="/" className="text-lg font-bold">
-          🍨 Sorveteria
-        </Link>
-
-        <Link
-          href="/carrinho"
-          className="flex items-center gap-2 rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium transition hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
-        >
-          <span aria-hidden>🛒</span>
-          {pronto && totalItens > 0 ? (
-            <span>
-              {totalItens} · {formatBRL(subtotal)}
-            </span>
-          ) : (
-            <span>Carrinho</span>
-          )}
-        </Link>
+    <header className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md shadow-sm border-b border-border/40 flex items-center justify-between px-4 h-16">
+      {/* Ícone esquerdo — identidade da loja */}
+      <div className="flex items-center justify-center w-10 h-10 text-muted-foreground">
+        <span className="material-symbols-outlined">icecream</span>
       </div>
+
+      {/* Nome central */}
+      <Link href="/" className="text-2xl font-extrabold text-primary tracking-tight">
+        Qbombom Sorvetes
+      </Link>
+
+      {/* Carrinho com badge */}
+      <Link
+        href="/carrinho"
+        className="flex items-center justify-center w-10 h-10 text-muted-foreground hover:text-primary transition-colors relative rounded-full focus:outline-none focus:ring-2 focus:ring-primary/20"
+      >
+        <span className="material-symbols-outlined">shopping_cart</span>
+        {pronto && totalItens > 0 ? (
+          <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-primary rounded-full border-2 border-background" />
+        ) : null}
+      </Link>
     </header>
   );
 }

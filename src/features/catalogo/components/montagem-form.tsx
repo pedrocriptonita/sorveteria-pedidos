@@ -10,6 +10,7 @@ import {
 } from "../pricing";
 import type { GrupoOpcaoView, ProdutoView, SelecaoConfig } from "../types";
 import { formatBRL } from "@/lib/format";
+import { Button } from "@/components/ui/button";
 
 export function MontagemForm({ produto }: { produto: ProdutoView }) {
   const router = useRouter();
@@ -75,10 +76,11 @@ export function MontagemForm({ produto }: { produto: ProdutoView }) {
           {produto.tamanhos.map((t) => (
             <label
               key={t.id}
-              className="flex cursor-pointer items-center justify-between rounded-md border border-neutral-200 px-3 py-2 dark:border-neutral-800"
+              className="flex cursor-pointer items-center justify-between rounded-md border border-border px-3 py-2"
             >
               <span className="flex items-center gap-2 text-sm">
                 <input
+                  className="accent-primary"
                   type="radio"
                   name="tamanho"
                   checked={config.tamanhoId === t.id}
@@ -102,10 +104,10 @@ export function MontagemForm({ produto }: { produto: ProdutoView }) {
             <legend className="mb-1 font-medium">
               {grupo.nome}
               {grupo.obrigatorio ? (
-                <span className="ml-1 text-red-600">*</span>
+                <span className="ml-1 text-destructive">*</span>
               ) : null}
             </legend>
-            <p className="text-xs text-neutral-500">
+            <p className="text-xs text-muted-foreground">
               {grupo.tipo === "UNICO" ? "Escolha 1" : "Escolha vários"}
               {grupo.cotaGratis > 0
                 ? ` · ${grupo.cotaGratis} grátis`
@@ -121,7 +123,7 @@ export function MontagemForm({ produto }: { produto: ProdutoView }) {
               return (
                 <label
                   key={item.id}
-                  className={`flex items-center justify-between rounded-md border border-neutral-200 px-3 py-2 dark:border-neutral-800 ${
+                  className={`flex items-center justify-between rounded-md border border-border px-3 py-2 ${
                     desabilitado
                       ? "cursor-not-allowed opacity-50"
                       : "cursor-pointer"
@@ -137,11 +139,13 @@ export function MontagemForm({ produto }: { produto: ProdutoView }) {
                     />
                     {item.nome}
                     {!item.disponivel ? (
-                      <span className="text-xs text-neutral-400">(esgotado)</span>
+                      <span className="text-xs text-muted-foreground">
+                        (esgotado)
+                      </span>
                     ) : null}
                   </span>
                   {item.precoExtra > 0 ? (
-                    <span className="text-sm text-neutral-600 dark:text-neutral-400">
+                    <span className="text-sm text-muted-foreground">
                       + {formatBRL(item.precoExtra)}
                     </span>
                   ) : null}
@@ -153,42 +157,47 @@ export function MontagemForm({ produto }: { produto: ProdutoView }) {
       })}
 
       {/* Quantidade + adicionar */}
-      <div className="sticky bottom-0 flex flex-col gap-3 border-t border-neutral-200 bg-background pt-4 dark:border-neutral-800">
+      <div className="sticky bottom-0 flex flex-col gap-3 border-t border-border bg-background pt-4">
         <div className="flex items-center justify-between">
           <span className="text-sm font-medium">Quantidade</span>
           <div className="flex items-center gap-3">
-            <button
+            <Button
               type="button"
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
               onClick={() => setQuantidade((q) => Math.max(1, q - 1))}
-              className="h-8 w-8 rounded-md border border-neutral-300 dark:border-neutral-700"
               aria-label="Diminuir"
             >
               −
-            </button>
+            </Button>
             <span className="w-6 text-center">{quantidade}</span>
-            <button
+            <Button
               type="button"
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
               onClick={() => setQuantidade((q) => q + 1)}
-              className="h-8 w-8 rounded-md border border-neutral-300 dark:border-neutral-700"
               aria-label="Aumentar"
             >
               +
-            </button>
+            </Button>
           </div>
         </div>
 
         {!valido ? (
-          <p className="text-sm text-red-600">{resultado.erros[0]}</p>
+          <p className="text-sm text-destructive">{resultado.erros[0]}</p>
         ) : null}
 
-        <button
+        <Button
           type="button"
+          size="lg"
+          className="w-full"
           onClick={adicionarAoCarrinho}
           disabled={!valido}
-          className="rounded-md bg-neutral-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-neutral-700 disabled:opacity-50 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
         >
           Adicionar {formatBRL(resultado.precoUnitario * quantidade)}
-        </button>
+        </Button>
       </div>
     </div>
   );

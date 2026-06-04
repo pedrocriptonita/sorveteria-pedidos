@@ -10,6 +10,7 @@ import type {
   TipoEntrega,
 } from "../types";
 import { formatBRL } from "@/lib/format";
+import { Button } from "@/components/ui/button";
 
 const CLIENTE_KEY = "sorveteria:cliente:v1";
 
@@ -29,7 +30,7 @@ function lerCliente(): { nome: string; telefone: string } {
 }
 
 const inputClass =
-  "rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900 dark:border-neutral-700 dark:bg-neutral-900 dark:focus:border-white";
+  "w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40";
 
 export function CheckoutForm({ config }: { config: ConfigLojaView | null }) {
   const router = useRouter();
@@ -100,11 +101,11 @@ export function CheckoutForm({ config }: { config: ConfigLojaView | null }) {
   }
 
   if (!pronto) {
-    return <p className="py-16 text-center text-neutral-500">Carregando…</p>;
+    return <p className="py-16 text-center text-muted-foreground">Carregando…</p>;
   }
   if (itens.length === 0) {
     return (
-      <p className="py-16 text-center text-neutral-500">
+      <p className="py-16 text-center text-muted-foreground">
         Carrinho vazio. Volte ao cardápio para adicionar itens.
       </p>
     );
@@ -137,10 +138,10 @@ export function CheckoutForm({ config }: { config: ConfigLojaView | null }) {
               key={t}
               type="button"
               onClick={() => setTipoEntrega(t)}
-              className={`flex-1 rounded-md border px-3 py-2 text-sm ${
+              className={`flex-1 rounded-md border px-3 py-2 text-sm transition-colors ${
                 tipoEntrega === t
-                  ? "border-neutral-900 bg-neutral-900 text-white dark:border-white dark:bg-white dark:text-neutral-900"
-                  : "border-neutral-300 dark:border-neutral-700"
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border hover:bg-muted"
               }`}
             >
               {t === "RETIRADA" ? "Retirar na loja" : "Entrega"}
@@ -186,10 +187,10 @@ export function CheckoutForm({ config }: { config: ConfigLojaView | null }) {
               key={f}
               type="button"
               onClick={() => setFormaPagamento(f)}
-              className={`flex-1 rounded-md border px-3 py-2 text-sm ${
+              className={`flex-1 rounded-md border px-3 py-2 text-sm transition-colors ${
                 formaPagamento === f
-                  ? "border-neutral-900 bg-neutral-900 text-white dark:border-white dark:bg-white dark:text-neutral-900"
-                  : "border-neutral-300 dark:border-neutral-700"
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border hover:bg-muted"
               }`}
             >
               {f === "PIX" ? "PIX" : "Dinheiro"}
@@ -198,7 +199,7 @@ export function CheckoutForm({ config }: { config: ConfigLojaView | null }) {
         </div>
 
         {formaPagamento === "PIX" ? (
-          <p className="text-sm text-neutral-500">
+          <p className="text-sm text-muted-foreground">
             Você vai pagar pelo QR Code / copia-e-cola na próxima tela. A
             confirmação é automática.
           </p>
@@ -223,7 +224,7 @@ export function CheckoutForm({ config }: { config: ConfigLojaView | null }) {
         />
       </section>
 
-      <section className="flex flex-col gap-1 border-t border-neutral-200 pt-4 text-sm dark:border-neutral-800">
+      <section className="flex flex-col gap-1 border-t border-border pt-4 text-sm">
         <div className="flex justify-between">
           <span>Subtotal</span>
           <span>{formatBRL(subtotal)}</span>
@@ -244,16 +245,17 @@ export function CheckoutForm({ config }: { config: ConfigLojaView | null }) {
         </div>
       </section>
 
-      {erro ? <p className="text-sm text-red-600">{erro}</p> : null}
+      {erro ? <p className="text-sm text-destructive">{erro}</p> : null}
 
-      <button
+      <Button
         type="button"
+        size="lg"
+        className="w-full"
         onClick={enviar}
         disabled={pending}
-        className="rounded-md bg-neutral-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-neutral-700 disabled:opacity-60 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
       >
         {pending ? "Enviando…" : "Confirmar pedido"}
-      </button>
+      </Button>
     </div>
   );
 }

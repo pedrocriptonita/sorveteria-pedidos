@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Premium para Sorveterias | Revolucione seu Atendimento</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #09090b;
+            --bg-card: rgba(255, 255, 255, 0.03);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --primary: #f43f5e; /* Rose */
+            --primary-glow: rgba(244, 63, 94, 0.4);
+            --secondary: #8b5cf6; /* Violet */
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Background Effects */
+        .bg-glow {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--primary-glow) 0%, rgba(9,9,11,0) 70%);
+            top: -200px;
+            left: -200px;
+            z-index: -1;
+            filter: blur(80px);
+            opacity: 0.7;
+            animation: pulse-glow 8s infinite alternate;
+        }
+
+        .bg-glow-2 {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.3) 0%, rgba(9,9,11,0) 70%);
+            bottom: 10%;
+            right: -100px;
+            z-index: -1;
+            filter: blur(80px);
+        }
+
+        @keyframes pulse-glow {
+            0% { transform: scale(1); opacity: 0.5; }
+            100% { transform: scale(1.2); opacity: 0.8; }
+        }
+
+        /* Typography */
+        h1, h2, h3 {
+            line-height: 1.2;
+            margin-bottom: 1rem;
+        }
+
+        .text-gradient {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-block;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            font-size: 1.1rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            box-shadow: 0 10px 20px -10px var(--primary);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
+            z-index: -1;
+            transition: opacity 0.3s ease;
+            opacity: 0;
+        }
+
+        .btn-primary:hover::before {
+            opacity: 1;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 25px -10px var(--primary);
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding-top: 4rem;
+            position: relative;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 800;
+            max-width: 900px;
+            margin: 0 auto 1.5rem auto;
+            letter-spacing: -1px;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto 3rem auto;
+        }
+
+        /* Pains Section */
+        .section {
+            padding: 8rem 0;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-header h2 {
+            font-size: 2.5rem;
+        }
+
+        .pains-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 2.5rem;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .pain-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            display: inline-block;
+            background: rgba(244, 63, 94, 0.1);
+            width: 60px;
+            height: 60px;
+            line-height: 60px;
+            text-align: center;
+            border-radius: 16px;
+            color: var(--primary);
+        }
+
+        /* Solution Section */
+        .solution-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .solution-content ul {
+            list-style: none;
+            margin-top: 2rem;
+        }
+
+        .solution-content li {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            color: var(--text-muted);
+        }
+
+        .solution-content li::before {
+            content: '✓';
+            color: var(--success);
+            font-weight: bold;
+            margin-right: 1rem;
+            background: rgba(16, 185, 129, 0.1);
+            width: 24px; height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+
+        .solution-image {
+            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 32px;
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .solution-image::after {
+            content: 'Demonstração Visual do Dashboard';
+            color: var(--text-muted);
+            font-weight: 300;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+
+        /* Pricing Section */
+        .pricing-container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .pricing-card {
+            background: linear-gradient(180deg, var(--bg-card) 0%, rgba(9,9,11,1) 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 32px;
+            padding: 3rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pricing-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+
+        .price-setup {
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .price-label {
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .price-value {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .price-currency {
+            font-size: 1.5rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .price-recurrence {
+            font-size: 1rem;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        /* Reveal Animations */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.5rem; }
+            .solution-grid { grid-template-columns: 1fr; }
+            .card { padding: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-glow"></div>
+    <div class="bg-glow-2"></div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container reveal">
+            <h1>Chega de Pedidos Errados e <span class="text-gradient">Clientes Esperando</span></h1>
+            <p>O sistema definitivo para modernizar o atendimento da sua sorveteria. Digitalize seu cardápio, automatize pedidos e tenha total controle do seu caixa.</p>
+            <a href="#pricing" class="btn btn-primary">Quero modernizar meu negócio</a>
+        </div>
+    </section>
+
+    <!-- Pains Section -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header reveal">
+                <h2>Você ainda perde dinheiro com essas <span class="text-gradient">falhas?</span></h2>
+                <p style="color: var(--text-muted)">A operação manual está travando o crescimento da sua sorveteria.</p>
+            </div>
+            
+            <div class="pains-grid">
+                <div class="card reveal" style="transition-delay: 0.1s">
+                    <div class="pain-icon">📱</div>
+                    <h3>Caos no WhatsApp</h3>
+                    <p style="color: var(--text-muted)">Mensagens perdidas, áudios demorados e pedidos anotados errados que geram prejuízo e clientes insatisfeitos.</p>
+                </div>
+                
+                <div class="card reveal" style="transition-delay: 0.2s">
+                    <div class="pain-icon">⌛</div>
+                    <h3>Filas no Balcão</h3>
+                    <p style="color: var(--text-muted)">Atendimento lento em dias de pico. O cliente desiste de comprar porque a fila do caixa ou do pedido está enorme.</p>
+                </div>
+
+                <div class="card reveal" style="transition-delay: 0.3s">
+                    <div class="pain-icon">📉</div>
+                    <h3>Falta de Controle</h3>
+                    <p style="color: var(--text-muted)">Fechamento de caixa demorado, dificuldade de saber qual sorvete vende mais e perdas não contabilizadas.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Solution Section -->
+    <section class="section" style="background: rgba(255,255,255,0.01)">
+        <div class="container">
+            <div class="solution-grid">
+                <div class="solution-content reveal">
+                    <h2>A <span class="text-gradient">Solução Completa</span> para a sua Sorveteria</h2>
+                    <p style="color: var(--text-muted); font-size: 1.1rem; margin-top: 1rem;">
+                        Substituímos o papel e a desorganização por um sistema inteligente, desenhado especificamente para a dinâmica rápida de uma sorveteria.
+                    </p>
+                    <ul>
+                        <li>Cardápio Digital com fotos atrativas e autoatendimento.</li>
+                        <li>Integração direta com a cozinha (Impressão automática).</li>
+                        <li>Pagamentos via PIX automatizados (Sem precisar conferir comprovante).</li>
+                        <li>Gestão completa de estoque e fechamento de caixa em 1 clique.</li>
+                        <li>Painel de relatórios em tempo real no seu celular.</li>
+                    </ul>
+                </div>
+                <div class="solution-image reveal" style="transition-delay: 0.2s">
+                    <!-- Placeholder for App Screenshot -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="section">
+        <div class="container">
+            <div class="section-header reveal">
+                <h2>Um investimento que <span class="text-gradient">se paga</span> em dias</h2>
+                <p style="color: var(--text-muted)">Transparência total. Sem surpresas.</p>
+            </div>
+
+            <div class="pricing-container reveal" style="transition-delay: 0.1s">
+                <div class="pricing-card">
+                    <div class="price-setup">
+                        <div class="price-label">Taxa Única de Implementação</div>
+                        <div class="price-value">
+                            <span class="price-currency">R$</span> 1.489<span class="price-currency">,90</span>
+                        </div>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 1rem;">
+                            Inclui setup completo, cadastro do seu cardápio, configuração das impressoras e treinamento presencial/remoto da sua equipe.
+                        </p>
+                    </div>
+                    
+                    <div class="price-monthly">
+                        <div class="price-label">Mensalidade (Licença e Suporte)</div>
+                        <div class="price-value" style="font-size: 2.5rem;">
+                            <span class="price-currency" style="font-size: 1.2rem;">R$</span> 199<span class="price-currency" style="font-size: 1.2rem;">,90</span>
+                            <span class="price-recurrence">/mês</span>
+                        </div>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 1rem; margin-bottom: 2rem;">
+                            Hospedagem em nuvem, atualizações constantes do sistema, backup de dados e suporte técnico dedicado.
+                        </p>
+                    </div>
+
+                    <a href="https://wa.me/5500000000000?text=Olá!%20Gostaria%20de%20implantar%20o%20sistema%20na%20minha%20sorveteria!" class="btn btn-primary" style="width: 100%;" target="_blank">
+                        Falar com um Consultor
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer style="text-align: center; padding: 2rem; border-top: 1px solid var(--border-color); margin-top: 4rem;">
+        <p style="color: var(--text-muted); font-size: 0.9rem;">
+            © 2026 Sistema Premium para Sorveterias. Transformando negócios.
+        </p>
+    </footer>
+
+    <!-- Animations Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { 
+                threshold: 0.1,
+                rootMargin: "0px 0px -50px 0px"
+            });
+
+            document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+        });
+    </script>
+</body>
+</html>

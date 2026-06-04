@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getProdutoAdmin } from "@/features/admin/data";
+import { FotoUpload } from "@/features/admin/components/foto-upload";
 import {
   criarGrupo,
   criarItem,
@@ -95,6 +96,9 @@ export default async function ProdutoEditorPage({
           Salvar
         </button>
       </form>
+
+      {/* Upload de foto */}
+      <FotoUpload produtoId={produto.id} fotoAtual={produto.foto ?? null} />
 
       {produto.montavel ? (
         <>

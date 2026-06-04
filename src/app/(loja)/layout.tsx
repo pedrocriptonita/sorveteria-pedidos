@@ -1,11 +1,7 @@
 import { CartProvider } from "@/features/catalogo/cart/cart-provider";
 import { StoreHeader } from "@/features/catalogo/components/store-header";
+import { BottomNav } from "@/features/catalogo/components/bottom-nav";
 
-/**
- * Layout da vitrine (route group sem segmento de URL). Provê o carrinho a
- * todas as telas da loja e o cabeçalho com o indicador. Admin/cozinha/login
- * ficam fora deste grupo e não montam o carrinho.
- */
 export default function LojaLayout({
   children,
 }: {
@@ -14,7 +10,11 @@ export default function LojaLayout({
   return (
     <CartProvider>
       <StoreHeader />
-      <div className="mx-auto max-w-3xl p-4">{children}</div>
+      {/* pt-16 = altura do header, pb-24 = espaço do bottom nav */}
+      <main className="mx-auto max-w-md px-4 pt-20 pb-28">
+        {children}
+      </main>
+      <BottomNav />
     </CartProvider>
   );
 }

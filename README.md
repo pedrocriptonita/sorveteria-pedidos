@@ -4,7 +4,7 @@ Sistema próprio de pedidos e cardápio digital para uma sorveteria (single-tena
 cardápio com "monte seu açaí", carrinho, checkout, pagamento (PIX + dinheiro),
 impressão automática na cozinha, painel da cozinha (KDS) e painel administrativo.
 
-> **Status:** Fase 7 — Admin (catálogo + configuração + operação) no ar. Próxima: Fase 8 (UI shell + shadcn). Pendências menores: banners, horários e substituição de item.
+> **Status:** Fase 8 — UI shell + shadcn (identidade vermelho/branco) no storefront. Próxima: Fase 9 (polimento). Pendências menores: banners, horários, substituição de item, e refino visual de admin/KDS.
 
 ## Stack
 
@@ -174,6 +174,18 @@ Configuração.
 - **Clientes** (`/admin/clientes`): **bloquear/desbloquear** (cliente bloqueado
   não consegue pagar em dinheiro — anti-trote).
 
+### Identidade visual (Fase 8)
+
+- **shadcn/ui** (estilo new-york) com componentes base em `src/components/ui/`
+  (`button`, `card`, `input`, `label`, `badge`, `textarea`) + `cn()` em
+  `src/lib/utils.ts` e `components.json` (para `npx shadcn add ...` no futuro).
+- **Tema vermelho/branco** (light-only) em `src/app/globals.css` via tokens
+  CSS (`--primary` vermelho, `--background` branco). Para ajustar a marca, mude
+  os tokens em `:root`.
+- O **storefront do cliente** (cardápio, montagem, carrinho, checkout, status,
+  login) usa a marca. Admin e KDS seguem funcionais e ganham refino visual no
+  polimento (Fase 9).
+
 ## Scripts
 
 | Script | Descrição |
@@ -224,6 +236,6 @@ prisma/schema.prisma     # modelo de dados (fonte da verdade)
 5. **Checkout + Pedido + Pagamento (PIX/dinheiro)** ✅
 6. **Fila de impressão + KDS** ✅
 7. **Admin: configurações e operação** ✅ _(banners, horários e substituição de item ficam para o polimento)_
-8. UI Shell e refatoração (shadcn)
+8. **UI Shell e refatoração (shadcn)** ✅ _(storefront com marca vermelho/branco; admin/KDS visual refinado no polimento)_
 9. Polimento (performance, segurança, observabilidade, UX)
 ```

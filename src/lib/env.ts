@@ -36,6 +36,13 @@ export const env = {
   // Impressão (server-only)
   printMode: process.env.PRINT_MODE ?? "agent",
   printAgentToken: process.env.PRINT_AGENT_TOKEN ?? "",
+
+  // WhatsApp Bot (Z-API, server-only)
+  zapiBaseUrl: process.env.ZAPI_BASE_URL ?? "https://api.z-api.io",
+  zapiInstanceId: process.env.ZAPI_INSTANCE_ID ?? "",
+  zapiToken: process.env.ZAPI_TOKEN ?? "",
+  zapiClientToken: process.env.ZAPI_CLIENT_TOKEN ?? "",
+  zapiWebhookSecret: process.env.ZAPI_WEBHOOK_SECRET ?? "",
 } as const;
 
 /** Chave service_role — SOMENTE no servidor. Lança se usada sem configurar. */
