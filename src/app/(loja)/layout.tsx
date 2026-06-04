@@ -1,5 +1,7 @@
 import { CartProvider } from "@/features/catalogo/cart/cart-provider";
+import { HeroProvider } from "@/features/catalogo/components/hero-context";
 import { StoreHeader } from "@/features/catalogo/components/store-header";
+import { LojaMain } from "@/features/catalogo/components/loja-main";
 import { BottomNav } from "@/features/catalogo/components/bottom-nav";
 
 export default function LojaLayout({
@@ -9,12 +11,12 @@ export default function LojaLayout({
 }) {
   return (
     <CartProvider>
-      <StoreHeader />
-      {/* pt-16 = altura do header, pb-24 = espaço do bottom nav */}
-      <main className="mx-auto max-w-md px-4 pt-20 pb-28">
-        {children}
-      </main>
-      <BottomNav />
+      <HeroProvider>
+        <StoreHeader />
+        {/* padding-top dinâmico: acompanha a altura do header (logo vs produto) */}
+        <LojaMain>{children}</LojaMain>
+        <BottomNav />
+      </HeroProvider>
     </CartProvider>
   );
 }

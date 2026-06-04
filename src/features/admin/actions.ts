@@ -4,6 +4,13 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth/session";
+import { SABORES_PADRAO } from "./sabores";
+
+/** Normaliza para comparar sabores ignorando acento/caixa/espaços. */
+const DIACRITICOS = /[̀-ͯ]/g;
+function normalizar(s: string): string {
+  return s.trim().toLowerCase().normalize("NFD").replace(DIACRITICOS, "");
+}
 
 // ---------------------------------------------------------------------------
 // Helpers de parse de FormData
@@ -279,6 +286,47 @@ export async function criarItem(fd: FormData) {
       precoExtra: numero(fd, "precoExtra") || 0,
       ordem: qtd + 1,
     },
+  });
+  revalProduto(produtoId);
+}
+
+/**
+ * Preenche o grupo com os SABORES_PADRAO de uma vez, pulando os que já existem
+ * no grupo (comparação sem acento/caixa) para nunca duplicar. precoExtra = 0;
+ * o admin ajusta sobrepreço depois via `editarItem`.
+ */
+export async function preencherSabores(fd: FormData) {
+  await requireAdmin();
+  const grupoId = str(fd, "grupoId");
+  const produtoId = str(fd, "produtoId");
+  if (!grupoId) return;
+
+  const existentes = await prisma.itemOpcao.findMany({
+    where: { grupoId, deletedAt: null },
+    select: { nome: true },
+  });
+  const jaTem = new Set(existentes.map((i) => normalizar(i.nome)));
+  const qtd = existentes.length;
+
+  const novos = SABORES_PADRAO.filter((s) => !jaTem.has(normalizar(s))).map(
+    (nome, idx) => ({ grupoId, nome, precoExtra: 0, ordem: qtd + idx + 1 }),
+  );
+  if (novos.length === 0) return;
+
+  await prisma.itemOpcao.createMany({ data: novos });
+  revalProduto(produtoId);
+}
+
+/** Edita nome e sobrepreço de um item já existente (ex.: Pistache + R$2,00). */
+export async function editarItem(fd: FormData) {
+  await requireAdmin();
+  const id = str(fd, "id");
+  const produtoId = str(fd, "produtoId");
+  const nome = str(fd, "nome");
+  if (!id || !nome) return;
+  await prisma.itemOpcao.update({
+    where: { id },
+    data: { nome, precoExtra: numero(fd, "precoExtra") || 0 },
   });
   revalProduto(produtoId);
 }

@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getProduto } from "@/features/catalogo/data";
 import { MontagemForm } from "@/features/catalogo/components/montagem-form";
+import { SetProdutoHero } from "@/features/catalogo/components/set-produto-hero";
 
 export const dynamic = "force-dynamic";
 
@@ -17,21 +17,14 @@ export default async function ProdutoPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <Link
-        href="/"
-        className="text-sm text-neutral-500 underline underline-offset-2"
-      >
-        ← Voltar ao cardápio
-      </Link>
+      {/* Publica a foto/nome no Hero; o botão de voltar fica no header */}
+      <SetProdutoHero foto={produto.foto} nome={produto.nome} />
 
-      <header className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold">{produto.nome}</h1>
-        {produto.descricao ? (
-          <p className="text-neutral-600 dark:text-neutral-400">
-            {produto.descricao}
-          </p>
-        ) : null}
-      </header>
+      {produto.descricao ? (
+        <p className="text-neutral-600 dark:text-neutral-400">
+          {produto.descricao}
+        </p>
+      ) : null}
 
       <MontagemForm produto={produto} />
     </div>

@@ -7,15 +7,18 @@ import {
   criarItem,
   criarTamanho,
   editarGrupo,
+  editarItem,
   editarProduto,
   editarTamanho,
   excluirGrupo,
   excluirItem,
   excluirProduto,
   excluirTamanho,
+  preencherSabores,
   toggleItemDisponivel,
   toggleProdutoDisponivel,
 } from "@/features/admin/actions";
+import { Button } from "@/components/ui/button";
 import { formatBRL } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -221,22 +224,31 @@ export default async function ProdutoEditorPage({
                 {/* Itens do grupo */}
                 <ul className="flex flex-col gap-1 border-t border-neutral-100 pt-2 dark:border-neutral-800">
                   {g.itens.map((it) => (
-                    <li key={it.id} className="flex items-center justify-between gap-2 text-sm">
-                      <span>
-                        {it.nome}
-                        {it.precoExtra > 0 ? (
-                          <span className="text-neutral-500">
-                            {" "}
-                            +{formatBRL(it.precoExtra)}
-                          </span>
-                        ) : null}
-                        {!it.disponivel ? (
-                          <span className="ml-1 text-xs text-amber-600">
-                            (esgotado)
-                          </span>
-                        ) : null}
-                      </span>
-                      <div className="flex items-center gap-1">
+                    <li key={it.id} className="flex flex-wrap items-center gap-2 text-sm">
+                      {/* Edição inline de nome + sobrepreço */}
+                      <form action={editarItem} className="flex items-center gap-2">
+                        <input type="hidden" name="id" value={it.id} />
+                        <input type="hidden" name="produtoId" value={produto.id} />
+                        <input
+                          name="nome"
+                          defaultValue={it.nome}
+                          className={`${input} w-36`}
+                        />
+                        <input
+                          name="precoExtra"
+                          defaultValue={it.precoExtra > 0 ? it.precoExtra : ""}
+                          placeholder="+ R$"
+                          inputMode="decimal"
+                          className={`${input} w-20`}
+                        />
+                        <button className={btn} type="submit">
+                          Salvar
+                        </button>
+                      </form>
+                      {!it.disponivel ? (
+                        <span className="text-xs text-amber-600">(esgotado)</span>
+                      ) : null}
+                      <div className="ml-auto flex items-center gap-1">
                         <form action={toggleItemDisponivel}>
                           <input type="hidden" name="id" value={it.id} />
                           <input type="hidden" name="produtoId" value={produto.id} />
@@ -255,6 +267,20 @@ export default async function ProdutoEditorPage({
                     </li>
                   ))}
                 </ul>
+
+                {/* Atalho: preencher o grupo com os sabores padrão */}
+                <form action={preencherSabores}>
+                  <input type="hidden" name="grupoId" value={g.id} />
+                  <input type="hidden" name="produtoId" value={produto.id} />
+                  <Button
+                    type="submit"
+                    variant="secondary"
+                    size="sm"
+                    className="gap-1.5"
+                  >
+                    🍦 Preencher com Sabores de Sorvete
+                  </Button>
+                </form>
 
                 {/* Novo item + excluir grupo (forms irmãos — sem aninhar) */}
                 <div className="flex items-center gap-2">

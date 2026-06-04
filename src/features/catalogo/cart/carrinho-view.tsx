@@ -114,6 +114,13 @@ export function CarrinhoView({ pedidoMinimo }: { pedidoMinimo: number | null }) 
           <span>{formatBRL(subtotal)}</span>
         </div>
 
+        <Link
+          href="/"
+          className={buttonVariants({ variant: "outline", size: "lg", className: "w-full" })}
+        >
+          + Continuar comprando
+        </Link>
+
         {abaixoDoMinimo ? (
           <>
             <p className="rounded-md bg-accent px-3 py-2 text-sm text-accent-foreground">
