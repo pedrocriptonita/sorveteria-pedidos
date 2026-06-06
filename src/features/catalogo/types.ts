@@ -43,10 +43,23 @@ export interface ProdutoView {
   grupos: GrupoOpcaoView[];
 }
 
-export interface CategoriaView {
+export type LayoutCategoria = "SCROLL" | "GRADE";
+
+/** Grupo de produtos de uma subcategoria (ex.: "Linha Mega"). */
+export interface SubcategoriaView {
   id: string;
   nome: string;
   produtos: ProdutoView[];
+}
+
+export interface CategoriaView {
+  id: string;
+  nome: string;
+  layout: LayoutCategoria;
+  /** Produtos sem subcategoria (aparecem soltos no topo da seção). */
+  produtos: ProdutoView[];
+  /** Subgrupos da categoria, cada um com seus produtos. */
+  subcategorias: SubcategoriaView[];
 }
 
 // ---------------------------------------------------------------------------

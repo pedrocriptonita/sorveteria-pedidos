@@ -12,21 +12,45 @@ import type { GrupoOpcaoView, ProdutoView, SelecaoConfig } from "../types";
 import { formatBRL } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 
-export function MontagemForm({ produto }: { produto: ProdutoView }) {
+export function MontagemForm({
+  produto,
+  linhaIdEdicao = null,
+}: {
+  produto: ProdutoView;
+  /** Quando setado, edita a linha do carrinho com este id (em vez de adicionar). */
+  linhaIdEdicao?: string | null;
+}) {
   const router = useRouter();
-  const { adicionar } = useCart();
+  const { adicionar, substituir, itens, pronto } = useCart();
 
-  const [config, setConfig] = useState<SelecaoConfig>({
-    tamanhoId: produto.tamanhos[0]?.id ?? null,
-    selecoes: {},
-  });
-  const [quantidade, setQuantidade] = useState(1);
+  // Linha sendo editada (se houver). Lê a config/quantidade salvas no carrinho.
+  const linhaEdicao = linhaIdEdicao
+    ? itens.find((i) => i.linhaId === linhaIdEdicao)
+    : undefined;
+  const editando = linhaEdicao !== undefined;
+
+  const [config, setConfig] = useState<SelecaoConfig>(
+    () =>
+      linhaEdicao?.config ?? {
+        tamanhoId: produto.tamanhos[0]?.id ?? null,
+        selecoes: {},
+      },
+  );
+  const [quantidade, setQuantidade] = useState(() => linhaEdicao?.quantidade ?? 1);
 
   const resultado = useMemo(
     () => calcularPreco(produto, config),
     [produto, config],
   );
   const valido = resultado.erros.length === 0;
+
+  // Editar depende do carrinho (localStorage), que só existe após hidratar.
+  // Gate evita divergência SSR/cliente no modo edição.
+  if (linhaIdEdicao && !pronto) {
+    return (
+      <p className="py-16 text-center text-muted-foreground">Carregando…</p>
+    );
+  }
 
   function setTamanho(id: string) {
     setConfig((c) => ({ ...c, tamanhoId: id }));
@@ -55,7 +79,7 @@ export function MontagemForm({ produto }: { produto: ProdutoView }) {
 
   function adicionarAoCarrinho() {
     if (!valido) return;
-    adicionar({
+    const item = {
       produtoId: produto.id,
       nomeProduto: produto.nome,
       montavel: produto.montavel,
@@ -64,7 +88,12 @@ export function MontagemForm({ produto }: { produto: ProdutoView }) {
       quantidade,
       precoUnitario: resultado.precoUnitario,
       config,
-    });
+    };
+    if (editando) {
+      substituir(linhaIdEdicao!, item);
+    } else {
+      adicionar(item);
+    }
     router.push("/carrinho");
   }
 
@@ -196,7 +225,8 @@ export function MontagemForm({ produto }: { produto: ProdutoView }) {
           onClick={adicionarAoCarrinho}
           disabled={!valido}
         >
-          Adicionar {formatBRL(resultado.precoUnitario * quantidade)}
+          {editando ? "Salvar alterações" : "Adicionar"}{" "}
+          {formatBRL(resultado.precoUnitario * quantidade)}
         </Button>
       </div>
     </div>

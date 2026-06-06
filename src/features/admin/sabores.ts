@@ -23,3 +23,12 @@ export const SABORES_PADRAO = [
   "nata",
   "doce de leite",
 ] as const;
+
+/** Sabores/linhas padrão de açaí — atalho "Preencher com Sabores de Açaí". */
+export const SABORES_ACAI = [
+  "açaí natural",
+  "açaí + leitinho",
+  "açaí com morango",
+  "açaí com banana",
+  "açaí zero",
+] as const;

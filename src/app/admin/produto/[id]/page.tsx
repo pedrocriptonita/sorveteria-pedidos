@@ -15,6 +15,7 @@ import {
   excluirProduto,
   excluirTamanho,
   preencherSabores,
+  preencherSaboresAcai,
   toggleItemDisponivel,
   toggleProdutoDisponivel,
 } from "@/features/admin/actions";
@@ -84,6 +85,29 @@ export default async function ProdutoEditorPage({
             className={input}
           />
         </label>
+        {produto.subcategorias.length > 0 ? (
+          <label className="flex flex-col gap-1 text-sm">
+            Subcategoria
+            <select
+              name="subcategoriaId"
+              defaultValue={produto.subcategoriaId ?? ""}
+              className={`${input} w-56`}
+            >
+              <option value="">Sem subcategoria</option>
+              {produto.subcategorias.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.nome}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : (
+          <input
+            type="hidden"
+            name="subcategoriaId"
+            defaultValue={produto.subcategoriaId ?? ""}
+          />
+        )}
         {!produto.montavel ? (
           <label className="flex flex-col gap-1 text-sm">
             Preço
@@ -268,19 +292,33 @@ export default async function ProdutoEditorPage({
                   ))}
                 </ul>
 
-                {/* Atalho: preencher o grupo com os sabores padrão */}
-                <form action={preencherSabores}>
-                  <input type="hidden" name="grupoId" value={g.id} />
-                  <input type="hidden" name="produtoId" value={produto.id} />
-                  <Button
-                    type="submit"
-                    variant="secondary"
-                    size="sm"
-                    className="gap-1.5"
-                  >
-                    🍦 Preencher com Sabores de Sorvete
-                  </Button>
-                </form>
+                {/* Atalhos: preencher o grupo com listas de sabores padrão */}
+                <div className="flex flex-wrap gap-2">
+                  <form action={preencherSabores}>
+                    <input type="hidden" name="grupoId" value={g.id} />
+                    <input type="hidden" name="produtoId" value={produto.id} />
+                    <Button
+                      type="submit"
+                      variant="secondary"
+                      size="sm"
+                      className="gap-1.5"
+                    >
+                      🍦 Preencher com Sabores de Sorvete
+                    </Button>
+                  </form>
+                  <form action={preencherSaboresAcai}>
+                    <input type="hidden" name="grupoId" value={g.id} />
+                    <input type="hidden" name="produtoId" value={produto.id} />
+                    <Button
+                      type="submit"
+                      variant="secondary"
+                      size="sm"
+                      className="gap-1.5"
+                    >
+                      🍇 Preencher com Sabores de Açaí
+                    </Button>
+                  </form>
+                </div>
 
                 {/* Novo item + excluir grupo (forms irmãos — sem aninhar) */}
                 <div className="flex items-center gap-2">

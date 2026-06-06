@@ -3,10 +3,14 @@ import { getCategoriasComProdutos } from "@/features/admin/data";
 import {
   criarCategoria,
   criarProduto,
+  criarSubcategoria,
+  definirLayoutCategoria,
   excluirCategoria,
   excluirProduto,
+  excluirSubcategoria,
   moverCategoria,
   renomearCategoria,
+  renomearSubcategoria,
   toggleCategoriaAtivo,
   toggleProdutoDisponivel,
 } from "@/features/admin/actions";
@@ -52,6 +56,25 @@ export default async function CatalogoAdminPage() {
             </form>
 
             <div className="flex items-center gap-1">
+              <form action={definirLayoutCategoria} className="flex items-center">
+                <input type="hidden" name="id" value={cat.id} />
+                <label className="sr-only" htmlFor={`layout-${cat.id}`}>
+                  Exibição da categoria
+                </label>
+                <select
+                  id={`layout-${cat.id}`}
+                  name="layout"
+                  defaultValue={cat.layout}
+                  className={input}
+                  title="Como os produtos desta categoria aparecem no cardápio"
+                >
+                  <option value="SCROLL">Carrossel ↔</option>
+                  <option value="GRADE">Grade ▦</option>
+                </select>
+                <button className={`${btn} ml-1`} type="submit">
+                  Aplicar
+                </button>
+              </form>
               <form action={moverCategoria}>
                 <input type="hidden" name="id" value={cat.id} />
                 <input type="hidden" name="dir" value="cima" />
@@ -88,6 +111,64 @@ export default async function CatalogoAdminPage() {
             </div>
           </div>
 
+          {/* Subcategorias (ex.: linhas do picolé) */}
+          <div className="flex flex-col gap-2 rounded-md bg-neutral-50 p-3 dark:bg-neutral-900/50">
+            <span className="text-xs font-semibold text-neutral-500">
+              Subcategorias
+            </span>
+            {cat.subcategorias.length === 0 ? (
+              <p className="text-xs text-neutral-400">
+                Nenhuma subcategoria. Crie linhas/grupos para organizar os
+                produtos (ex.: Linha Mega, Linha Fruta).
+              </p>
+            ) : (
+              <ul className="flex flex-wrap gap-2">
+                {cat.subcategorias.map((s) => (
+                  <li
+                    key={s.id}
+                    className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-2 py-1 dark:border-neutral-700 dark:bg-neutral-900"
+                  >
+                    <form
+                      action={renomearSubcategoria}
+                      className="flex items-center gap-1"
+                    >
+                      <input type="hidden" name="id" value={s.id} />
+                      <input
+                        name="nome"
+                        defaultValue={s.nome}
+                        className={`${input} w-32`}
+                      />
+                      <button className={btn} type="submit">
+                        Salvar
+                      </button>
+                    </form>
+                    <form action={excluirSubcategoria}>
+                      <input type="hidden" name="id" value={s.id} />
+                      <button className={`${btn} text-red-600`} type="submit">
+                        ✕
+                      </button>
+                    </form>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <form
+              action={criarSubcategoria}
+              className="flex items-center gap-2"
+            >
+              <input type="hidden" name="categoriaId" value={cat.id} />
+              <input
+                name="nome"
+                placeholder="Nova subcategoria"
+                className={input}
+                required
+              />
+              <button className={btn} type="submit">
+                + Adicionar
+              </button>
+            </form>
+          </div>
+
           {/* Produtos da categoria */}
           <ul className="flex flex-col divide-y divide-neutral-100 dark:divide-neutral-800">
             {cat.produtos.length === 0 ? (
@@ -102,6 +183,13 @@ export default async function CatalogoAdminPage() {
                 >
                   <div className="flex items-center gap-2 text-sm">
                     <span className="font-medium">{p.nome}</span>
+                    {p.subcategoriaId ? (
+                      <span className="rounded bg-primary/10 px-1.5 py-0.5 text-xs text-primary">
+                        {cat.subcategorias.find(
+                          (s) => s.id === p.subcategoriaId,
+                        )?.nome ?? "subcategoria"}
+                      </span>
+                    ) : null}
                     {p.montavel ? (
                       <span className="rounded bg-neutral-100 px-1.5 py-0.5 text-xs text-neutral-500 dark:bg-neutral-800">
                         montável
@@ -152,6 +240,16 @@ export default async function CatalogoAdminPage() {
               inputMode="decimal"
               className={`${input} w-20`}
             />
+            {cat.subcategorias.length > 0 ? (
+              <select name="subcategoriaId" defaultValue="" className={input}>
+                <option value="">Sem subcategoria</option>
+                {cat.subcategorias.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.nome}
+                  </option>
+                ))}
+              </select>
+            ) : null}
             <label className="flex items-center gap-1 text-xs text-neutral-500">
               <input type="checkbox" name="montavel" /> montável
             </label>

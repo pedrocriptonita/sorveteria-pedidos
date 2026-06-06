@@ -69,6 +69,10 @@ export async function getCardapio(): Promise<CategoriaView[]> {
     where: { ativo: true, deletedAt: null },
     orderBy: { ordem: "asc" },
     include: {
+      subcategorias: {
+        where: { ativo: true, deletedAt: null },
+        orderBy: { ordem: "asc" },
+      },
       produtos: {
         where: { deletedAt: null },
         orderBy: { nome: "asc" },
@@ -78,12 +82,40 @@ export async function getCardapio(): Promise<CategoriaView[]> {
   });
 
   return categorias
-    .map((c) => ({
-      id: c.id,
-      nome: c.nome,
-      produtos: c.produtos.map(mapProduto),
-    }))
-    .filter((c) => c.produtos.length > 0);
+    .map((c) => {
+      // Agrupa os produtos: soltos (sem subcategoria ativa) x por subcategoria.
+      const subAtivas = new Map(c.subcategorias.map((s) => [s.id, s]));
+      const soltos: ProdutoView[] = [];
+      const porSub = new Map<string, ProdutoView[]>();
+
+      for (const p of c.produtos) {
+        const view = mapProduto(p);
+        if (p.subcategoriaId && subAtivas.has(p.subcategoriaId)) {
+          const lista = porSub.get(p.subcategoriaId) ?? [];
+          lista.push(view);
+          porSub.set(p.subcategoriaId, lista);
+        } else {
+          soltos.push(view);
+        }
+      }
+
+      const subcategorias = c.subcategorias
+        .map((s) => ({
+          id: s.id,
+          nome: s.nome,
+          produtos: porSub.get(s.id) ?? [],
+        }))
+        .filter((s) => s.produtos.length > 0);
+
+      return {
+        id: c.id,
+        nome: c.nome,
+        layout: c.layout,
+        produtos: soltos,
+        subcategorias,
+      };
+    })
+    .filter((c) => c.produtos.length > 0 || c.subcategorias.length > 0);
 }
 
 /** Um produto pelo id (para a tela de montagem). null se inexistente/deletado. */

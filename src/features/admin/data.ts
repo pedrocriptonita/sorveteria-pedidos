@@ -11,6 +11,10 @@ export async function getCategoriasComProdutos(): Promise<CategoriaAdmin[]> {
     where: { deletedAt: null },
     orderBy: { ordem: "asc" },
     include: {
+      subcategorias: {
+        where: { deletedAt: null },
+        orderBy: { ordem: "asc" },
+      },
       produtos: {
         where: { deletedAt: null },
         orderBy: { nome: "asc" },
@@ -23,6 +27,13 @@ export async function getCategoriasComProdutos(): Promise<CategoriaAdmin[]> {
     nome: c.nome,
     ordem: c.ordem,
     ativo: c.ativo,
+    layout: c.layout,
+    subcategorias: c.subcategorias.map((s) => ({
+      id: s.id,
+      nome: s.nome,
+      ordem: s.ordem,
+      ativo: s.ativo,
+    })),
     produtos: c.produtos.map((p) => ({
       id: p.id,
       nome: p.nome,
@@ -30,6 +41,7 @@ export async function getCategoriasComProdutos(): Promise<CategoriaAdmin[]> {
       preco: p.preco === null ? null : Number(p.preco),
       montavel: p.montavel,
       disponivel: p.disponivel,
+      subcategoriaId: p.subcategoriaId,
     })),
   }));
 }
@@ -53,6 +65,11 @@ export async function getProdutoAdmin(
   });
   if (!p) return null;
 
+  const subcategorias = await prisma.subcategoria.findMany({
+    where: { categoriaId: p.categoriaId, deletedAt: null },
+    orderBy: { ordem: "asc" },
+  });
+
   return {
     id: p.id,
     nome: p.nome,
@@ -61,7 +78,14 @@ export async function getProdutoAdmin(
     preco: p.preco === null ? null : Number(p.preco),
     montavel: p.montavel,
     disponivel: p.disponivel,
+    subcategoriaId: p.subcategoriaId,
     categoriaId: p.categoriaId,
+    subcategorias: subcategorias.map((s) => ({
+      id: s.id,
+      nome: s.nome,
+      ordem: s.ordem,
+      ativo: s.ativo,
+    })),
     tamanhos: p.tamanhos.map((t) => ({
       id: t.id,
       nome: t.nome,

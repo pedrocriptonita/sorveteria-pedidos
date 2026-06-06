@@ -10,9 +10,9 @@ const jakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Sorveteria — Pedidos",
+  title: "DevoraFood — Pedidos",
   description:
-    "Sistema próprio de pedidos e cardápio digital da sorveteria (MVP).",
+    "DevoraFood — sistema de pedidos e cardápio digital para food service.",
 };
 
 export default function RootLayout({

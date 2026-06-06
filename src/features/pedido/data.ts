@@ -1,7 +1,7 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
 import type { OpcaoResumo } from "@/features/catalogo/types";
-import type { PedidoView } from "./types";
+import type { PedidoHistorico, PedidoView } from "./types";
 
 /** Pedido para a tela de status (serializável). null se não existir. */
 export async function getPedidoView(id: string): Promise<PedidoView | null> {
@@ -48,4 +48,37 @@ export async function getPedidoView(id: string): Promise<PedidoView | null> {
         }
       : null,
   };
+}
+
+/**
+ * Histórico de pedidos de um cliente, identificado pelo telefone (login leve).
+ * Retorna os mais recentes (limite) com itens (snapshot) para a aba Pedidos.
+ */
+export async function getHistoricoCliente(
+  telefone: string,
+  limit = 20,
+): Promise<PedidoHistorico[]> {
+  const tel = telefone.replace(/\D/g, "");
+  if (!tel) return [];
+
+  const pedidos = await prisma.pedido.findMany({
+    where: { cliente: { telefone: tel } },
+    orderBy: { createdAt: "desc" },
+    take: limit,
+    include: { itens: { orderBy: { createdAt: "asc" } } },
+  });
+
+  return pedidos.map((p) => ({
+    id: p.id,
+    numero: p.numero,
+    status: p.status,
+    total: Number(p.total),
+    criadoEm: p.createdAt.toISOString(),
+    itens: p.itens.map((i) => ({
+      nome: i.nomeProdutoSnapshot,
+      quantidade: i.quantidade,
+      tamanho: i.tamanho,
+      opcoes: (i.opcoes as OpcaoResumo[] | null) ?? [],
+    })),
+  }));
 }

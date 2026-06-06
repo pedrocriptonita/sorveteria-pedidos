@@ -7,7 +7,7 @@ import { useCart } from "../cart/cart-provider";
 const NAV = [
   { href: "/", icon: "restaurant_menu", label: "Cardápio" },
   { href: "/carrinho", icon: "shopping_cart", label: "Carrinho" },
-  { href: "/checkout", icon: "receipt_long", label: "Pedidos" },
+  { href: "/pedidos", icon: "receipt_long", label: "Pedidos" },
 ];
 
 export function BottomNav() {

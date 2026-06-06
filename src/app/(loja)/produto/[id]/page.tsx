@@ -7,10 +7,13 @@ export const dynamic = "force-dynamic";
 
 export default async function ProdutoPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ editar?: string }>;
 }) {
   const { id } = await params;
+  const { editar } = await searchParams;
   const produto = await getProduto(id);
 
   if (!produto || !produto.disponivel) notFound();
@@ -26,7 +29,7 @@ export default async function ProdutoPage({
         </p>
       ) : null}
 
-      <MontagemForm produto={produto} />
+      <MontagemForm produto={produto} linhaIdEdicao={editar ?? null} />
     </div>
   );
 }

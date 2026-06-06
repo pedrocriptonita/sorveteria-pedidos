@@ -92,6 +92,12 @@ enum PapelUsuario {
   COZINHA
 }
 
+/// Como os produtos de uma categoria são exibidos no cardápio.
+enum LayoutCategoria {
+  SCROLL // carrossel horizontal (fileira única, rola para o lado)
+  GRADE // grade vertical (produtos um abaixo do outro)
+}
+
 // ============================================================================
 // CATÁLOGO
 // ============================================================================
@@ -99,11 +105,13 @@ enum PapelUsuario {
 /// Categoria do cardápio (ex.: "Açaí", "Sorvetes", "Bebidas").
 /// Ordenável e desativável; soft delete preserva histórico de produtos.
 model Categoria {
-  id        String    @id @default(uuid())
+  id        String          @id @default(uuid())
   nome      String
-  ordem     Int       @default(0) // ordem de exibição no cardápio
-  ativo     Boolean   @default(true)
+  ordem     Int             @default(0) // ordem de exibição no cardápio
+  ativo     Boolean         @default(true)
+  layout    LayoutCategoria @default(SCROLL) // exibição dos produtos no cardápio
   produtos  Produto[]
+  subcategorias Subcategoria[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime? // soft delete
@@ -111,6 +119,28 @@ model Categoria {
   @@index([ativo])
   @@index([ordem])
   @@map("categorias")
+}
+
+/// Subcategoria (ex.: "Linha Mega", "Linha Fruta") agrupa produtos dentro de
+/// uma categoria. Opcional: produtos sem subcategoria aparecem soltos na seção.
+model Subcategoria {
+  id          String    @id @default(uuid())
+  nome        String
+  ordem       Int       @default(0)
+  ativo       Boolean   @default(true)
+
+  categoriaId String
+  categoria   Categoria @relation(fields: [categoriaId], references: [id])
+  produtos    Produto[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? // soft delete
+
+  @@index([categoriaId])
+  @@index([ativo])
+  @@index([ordem])
+  @@map("subcategorias")
 }
 
 /// Produto do cardápio. Quando `montavel = true`, usa tamanhos + grupos de
@@ -127,6 +157,10 @@ model Produto {
   categoriaId String
   categoria   Categoria @relation(fields: [categoriaId], references: [id])
 
+  // Subcategoria opcional (ex.: linha do picolé) dentro da categoria
+  subcategoriaId String?
+  subcategoria   Subcategoria? @relation(fields: [subcategoriaId], references: [id])
+
   // Estrutura do montável (só preenchida quando montavel = true)
   tamanhos      Tamanho[]
   gruposOpcoes  GrupoOpcao[]
@@ -139,6 +173,7 @@ model Produto {
   deletedAt DateTime? // soft delete
 
   @@index([categoriaId])
+  @@index([subcategoriaId])
   @@index([disponivel])
   @@map("produtos")
 }

@@ -19,7 +19,7 @@ export default async function CozinhaLayout({
     <div className="min-h-screen">
       <header className="flex items-center justify-between border-b border-neutral-200 px-6 py-3 dark:border-neutral-800">
         <div className="flex flex-col">
-          <span className="text-sm font-semibold">Sorveteria · Cozinha</span>
+          <span className="text-sm font-semibold">DevoraFood · Cozinha</span>
           <span className="text-xs text-neutral-500">{user.email}</span>
         </div>
         <LogoutButton />

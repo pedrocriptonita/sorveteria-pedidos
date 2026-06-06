@@ -11,20 +11,17 @@ function precoBaseMontavel(produto: ProdutoView): number {
   return Math.min(...produto.tamanhos.map((t) => t.precoBase));
 }
 
-function FotoPlaceholder() {
-  return (
-    <div className="w-full h-full flex items-center justify-center text-5xl">
-      🍧
-    </div>
-  );
-}
-
-export function ProdutoCard({
+/**
+ * Cartão do produto em formato de LINHA compacto (foto pequena à esquerda,
+ * nome/preço no meio, botão "+" à direita). Usado no layout GRADE — bom para
+ * categorias com muitos itens (ex.: linhas de picolé).
+ */
+export function ProdutoLinha({
   produto,
   priority = false,
 }: {
   produto: ProdutoView;
-  /** true para o primeiro card acima da dobra (melhora o LCP). */
+  /** true para a primeira linha acima da dobra (melhora o LCP). */
   priority?: boolean;
 }) {
   const { adicionar } = useCart();
@@ -45,12 +42,12 @@ export function ProdutoCard({
 
   return (
     <div
-      className={`bg-white rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.06)] relative flex flex-col transition-transform active:scale-[0.98] ${
+      className={`flex items-center gap-3 rounded-xl bg-white p-2 shadow-[0px_2px_10px_rgba(0,0,0,0.05)] ${
         indisponivel ? "opacity-60" : ""
       }`}
     >
-      {/* Área da foto */}
-      <div className="relative aspect-square rounded-t-xl overflow-hidden bg-[#fdf1f0]">
+      {/* Foto */}
+      <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-[#fdf1f0]">
         {produto.foto ? (
           <Image
             src={produto.foto}
@@ -58,23 +55,18 @@ export function ProdutoCard({
             fill
             priority={priority}
             className="object-cover"
-            sizes="(max-width: 768px) 50vw, 200px"
+            sizes="64px"
           />
         ) : (
-          <FotoPlaceholder />
-        )}
-        {indisponivel ? (
-          <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
-            <span className="text-xs font-semibold text-muted-foreground bg-white/80 px-2 py-1 rounded-full">
-              Esgotado
-            </span>
+          <div className="flex h-full w-full items-center justify-center text-2xl">
+            🍧
           </div>
-        ) : null}
+        )}
       </div>
 
       {/* Info */}
-      <div className="p-3 pb-4 flex flex-col gap-1">
-        <h3 className="text-sm font-semibold text-foreground line-clamp-2 leading-tight">
+      <div className="flex min-w-0 flex-1 flex-col">
+        <h3 className="line-clamp-2 text-sm font-semibold leading-tight text-foreground">
           {produto.nome}
         </h3>
         <span className="text-sm font-bold text-primary">
@@ -82,13 +74,18 @@ export function ProdutoCard({
             ? `a partir de ${formatBRL(precoBaseMontavel(produto))}`
             : formatBRL(produto.preco ?? 0)}
         </span>
+        {indisponivel ? (
+          <span className="text-xs font-medium text-muted-foreground">
+            Esgotado
+          </span>
+        ) : null}
       </div>
 
-      {/* Botão + circular */}
+      {/* Ação */}
       {indisponivel ? null : produto.montavel ? (
         <Link
           href={`/produto/${produto.id}`}
-          className="absolute bottom-3 right-3 w-9 h-9 bg-primary text-white rounded-full flex items-center justify-center shadow-md hover:bg-primary/90 active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 z-10"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-white shadow-md transition-all hover:bg-primary/90 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
           aria-label={`Montar ${produto.nome}`}
         >
           <span className="material-symbols-outlined text-[20px]">add</span>
@@ -97,7 +94,7 @@ export function ProdutoCard({
         <button
           type="button"
           onClick={adicionarSimples}
-          className="absolute bottom-3 right-3 w-9 h-9 bg-primary text-white rounded-full flex items-center justify-center shadow-md hover:bg-primary/90 active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 z-10"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-white shadow-md transition-all hover:bg-primary/90 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
           aria-label={`Adicionar ${produto.nome}`}
         >
           <span className="material-symbols-outlined text-[20px]">add</span>

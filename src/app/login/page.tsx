@@ -4,7 +4,7 @@ import { getBackofficeUser } from "@/lib/auth/session";
 import { LoginForm } from "./login-form";
 
 export const metadata: Metadata = {
-  title: "Entrar — Sorveteria",
+  title: "Entrar — DevoraFood",
 };
 
 // Lê a sessão dos cookies para redirecionar quem já está logado.
@@ -27,7 +27,7 @@ export default async function LoginPage({
         <span className="text-4xl" aria-hidden>
           🍦
         </span>
-        <h1 className="text-2xl font-bold">Sorveteria · Backoffice</h1>
+        <h1 className="text-2xl font-bold">DevoraFood · Backoffice</h1>
         <p className="text-sm text-muted-foreground">
           Acesso restrito à equipe (admin e cozinha).
         </p>

@@ -15,32 +15,49 @@ export default async function AdminHome() {
         {[
           {
             href: "/admin/catalogo",
-            titulo: "🍧 Catálogo",
+            icone: "icecream",
+            titulo: "Catálogo",
             desc: "Categorias, produtos, montável e disponibilidade.",
+            cor: "bg-pink-50 text-pink-600 dark:bg-pink-950",
           },
           {
             href: "/admin/pedidos",
-            titulo: "🧾 Pedidos",
+            icone: "receipt_long",
+            titulo: "Pedidos",
             desc: "Acompanhar e cancelar pedidos (com estorno PIX).",
+            cor: "bg-blue-50 text-blue-600 dark:bg-blue-950",
           },
           {
             href: "/admin/clientes",
-            titulo: "👤 Clientes",
+            icone: "group",
+            titulo: "Clientes",
             desc: "Bloquear/desbloquear (anti-trote do dinheiro).",
+            cor: "bg-amber-50 text-amber-600 dark:bg-amber-950",
           },
           {
             href: "/admin/config",
-            titulo: "⚙️ Configuração",
+            icone: "settings",
+            titulo: "Configuração",
             desc: "Pausar pedidos, taxa de entrega, pedido mínimo, zonas.",
+            cor: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950",
           },
         ].map((c) => (
           <Link
             key={c.href}
             href={c.href}
-            className="rounded-lg border border-neutral-200 p-4 transition hover:border-neutral-400 dark:border-neutral-800 dark:hover:border-neutral-600"
+            className="flex items-start gap-3 rounded-xl border border-neutral-200 bg-white p-4 shadow-sm transition hover:border-primary/40 hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900"
           >
-            <p className="font-medium">{c.titulo}</p>
-            <p className="text-sm text-neutral-500">{c.desc}</p>
+            <span
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${c.cor}`}
+            >
+              <span className="material-symbols-outlined text-[22px]">
+                {c.icone}
+              </span>
+            </span>
+            <div className="flex flex-col">
+              <p className="font-semibold">{c.titulo}</p>
+              <p className="text-sm text-neutral-500">{c.desc}</p>
+            </div>
           </Link>
         ))}
       </div>

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth/session";
-import { SABORES_PADRAO } from "./sabores";
+import { SABORES_ACAI, SABORES_PADRAO } from "./sabores";
 
 /** Normaliza para comparar sabores ignorando acento/caixa/espaços. */
 const DIACRITICOS = /[̀-ͯ]/g;
@@ -79,6 +79,16 @@ export async function excluirCategoria(fd: FormData) {
   revalidatePath(CATALOGO);
 }
 
+/** Define como os produtos da categoria são exibidos (SCROLL ou GRADE). */
+export async function definirLayoutCategoria(fd: FormData) {
+  await requireAdmin();
+  const id = str(fd, "id");
+  const layout = str(fd, "layout") === "GRADE" ? "GRADE" : "SCROLL";
+  if (!id) return;
+  await prisma.categoria.update({ where: { id }, data: { layout } });
+  revalidatePath(CATALOGO);
+}
+
 /** Move a categoria trocando a `ordem` com a vizinha (dir = "cima" | "baixo"). */
 export async function moverCategoria(fd: FormData) {
   await requireAdmin();
@@ -103,6 +113,52 @@ export async function moverCategoria(fd: FormData) {
 }
 
 // ===========================================================================
+// SUBCATEGORIAS
+// ===========================================================================
+export async function criarSubcategoria(fd: FormData) {
+  await requireAdmin();
+  const nome = str(fd, "nome");
+  const categoriaId = str(fd, "categoriaId");
+  if (!nome || !categoriaId) return;
+  const ultima = await prisma.subcategoria.findFirst({
+    where: { categoriaId, deletedAt: null },
+    orderBy: { ordem: "desc" },
+    select: { ordem: true },
+  });
+  await prisma.subcategoria.create({
+    data: { nome, categoriaId, ordem: (ultima?.ordem ?? 0) + 1 },
+  });
+  revalidatePath(CATALOGO);
+}
+
+export async function renomearSubcategoria(fd: FormData) {
+  await requireAdmin();
+  const id = str(fd, "id");
+  const nome = str(fd, "nome");
+  if (!id || !nome) return;
+  await prisma.subcategoria.update({ where: { id }, data: { nome } });
+  revalidatePath(CATALOGO);
+}
+
+export async function excluirSubcategoria(fd: FormData) {
+  await requireAdmin();
+  const id = str(fd, "id");
+  if (!id) return;
+  // Soft delete da subcategoria; produtos perdem o vínculo (voltam a "soltos").
+  await prisma.$transaction([
+    prisma.produto.updateMany({
+      where: { subcategoriaId: id },
+      data: { subcategoriaId: null },
+    }),
+    prisma.subcategoria.update({
+      where: { id },
+      data: { deletedAt: new Date(), ativo: false },
+    }),
+  ]);
+  revalidatePath(CATALOGO);
+}
+
+// ===========================================================================
 // PRODUTOS
 // ===========================================================================
 export async function criarProduto(fd: FormData) {
@@ -111,11 +167,13 @@ export async function criarProduto(fd: FormData) {
   const categoriaId = str(fd, "categoriaId");
   if (!nome || !categoriaId) return;
   const montavel = checkbox(fd, "montavel");
+  const subcategoriaId = str(fd, "subcategoriaId") || null;
 
   const produto = await prisma.produto.create({
     data: {
       nome,
       categoriaId,
+      subcategoriaId,
       montavel,
       descricao: str(fd, "descricao") || null,
       preco: montavel ? null : numeroOpc(fd, "preco"),
@@ -138,6 +196,7 @@ export async function editarProduto(fd: FormData) {
       nome: str(fd, "nome") || produto.nome,
       descricao: str(fd, "descricao") || null,
       preco: produto.montavel ? null : numeroOpc(fd, "preco"),
+      subcategoriaId: str(fd, "subcategoriaId") || null,
     },
   });
   revalidatePath(CATALOGO);
@@ -166,6 +225,9 @@ export async function excluirProduto(fd: FormData) {
     data: { deletedAt: new Date() },
   });
   revalidatePath(CATALOGO);
+  // Volta ao catálogo: se a exclusão veio do editor do produto, a própria
+  // URL /admin/produto/[id] passaria a dar 404 (produto soft-deletado).
+  redirect(CATALOGO);
 }
 
 // ===========================================================================
@@ -291,11 +353,14 @@ export async function criarItem(fd: FormData) {
 }
 
 /**
- * Preenche o grupo com os SABORES_PADRAO de uma vez, pulando os que já existem
- * no grupo (comparação sem acento/caixa) para nunca duplicar. precoExtra = 0;
- * o admin ajusta sobrepreço depois via `editarItem`.
+ * Preenche o grupo com uma lista de sabores de uma vez, pulando os que já
+ * existem no grupo (comparação sem acento/caixa) para nunca duplicar.
+ * precoExtra = 0; o admin ajusta sobrepreço depois via `editarItem`.
  */
-export async function preencherSabores(fd: FormData) {
+async function preencherComSabores(
+  fd: FormData,
+  sabores: readonly string[],
+) {
   await requireAdmin();
   const grupoId = str(fd, "grupoId");
   const produtoId = str(fd, "produtoId");
@@ -308,13 +373,23 @@ export async function preencherSabores(fd: FormData) {
   const jaTem = new Set(existentes.map((i) => normalizar(i.nome)));
   const qtd = existentes.length;
 
-  const novos = SABORES_PADRAO.filter((s) => !jaTem.has(normalizar(s))).map(
-    (nome, idx) => ({ grupoId, nome, precoExtra: 0, ordem: qtd + idx + 1 }),
-  );
+  const novos = sabores
+    .filter((s) => !jaTem.has(normalizar(s)))
+    .map((nome, idx) => ({ grupoId, nome, precoExtra: 0, ordem: qtd + idx + 1 }));
   if (novos.length === 0) return;
 
   await prisma.itemOpcao.createMany({ data: novos });
   revalProduto(produtoId);
+}
+
+/** Preenche o grupo com os sabores padrão de sorvete. */
+export async function preencherSabores(fd: FormData) {
+  await preencherComSabores(fd, SABORES_PADRAO);
+}
+
+/** Preenche o grupo com os sabores/linhas padrão de açaí. */
+export async function preencherSaboresAcai(fd: FormData) {
+  await preencherComSabores(fd, SABORES_ACAI);
 }
 
 /** Edita nome e sobrepreço de um item já existente (ex.: Pistache + R$2,00). */

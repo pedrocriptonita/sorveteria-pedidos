@@ -9,6 +9,16 @@ export interface ProdutoAdmin {
   preco: number | null;
   montavel: boolean;
   disponivel: boolean;
+  subcategoriaId: string | null;
+}
+
+export type LayoutCategoria = "SCROLL" | "GRADE";
+
+export interface SubcategoriaAdmin {
+  id: string;
+  nome: string;
+  ordem: number;
+  ativo: boolean;
 }
 
 export interface CategoriaAdmin {
@@ -16,6 +26,8 @@ export interface CategoriaAdmin {
   nome: string;
   ordem: number;
   ativo: boolean;
+  layout: LayoutCategoria;
+  subcategorias: SubcategoriaAdmin[];
   produtos: ProdutoAdmin[];
 }
 
@@ -48,6 +60,8 @@ export interface ProdutoAdminFull extends ProdutoAdmin {
   foto: string | null;
   tamanhos: TamanhoAdmin[];
   grupos: GrupoAdmin[];
+  /** Subcategorias disponíveis na categoria do produto (para o seletor). */
+  subcategorias: SubcategoriaAdmin[];
 }
 
 // ---------------------------------------------------------------------------
@@ -91,4 +105,29 @@ export interface ClienteAdmin {
   telefone: string;
   bloqueado: boolean;
   qtdPedidos: number;
+}
+
+// ---------------------------------------------------------------------------
+// Dashboard & faturamento
+// ---------------------------------------------------------------------------
+
+/** Contagem de pedidos de hoje por situação. */
+export interface DashboardHoje {
+  recebidos: number;
+  entregues: number;
+  cancelados: number;
+}
+
+/** Faturamento de um mês (apenas pedidos confirmados). */
+export interface FaturamentoMes {
+  /** "YYYY-MM" */
+  mes: string;
+  total: number;
+  quantidade: number;
+}
+
+/** Opção de mês para o filtro do histórico (últimos 3 meses). */
+export interface MesOpcao {
+  valor: string; // "YYYY-MM"
+  label: string; // "Junho/2026"
 }

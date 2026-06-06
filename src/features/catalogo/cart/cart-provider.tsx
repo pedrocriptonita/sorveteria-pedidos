@@ -30,6 +30,8 @@ interface CartContextValue {
   subtotal: number;
   /** Adiciona uma linha (gera o linhaId). */
   adicionar: (item: Omit<CartItem, "linhaId">) => void;
+  /** Substitui uma linha existente (preserva a posição e o linhaId). */
+  substituir: (linhaId: string, item: Omit<CartItem, "linhaId">) => void;
   alterarQuantidade: (linhaId: string, quantidade: number) => void;
   remover: (linhaId: string) => void;
   limpar: () => void;
@@ -66,6 +68,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setItens((atual) => [...atual, { ...item, linhaId: crypto.randomUUID() }]);
   }, []);
 
+  const substituir = useCallback(
+    (linhaId: string, item: Omit<CartItem, "linhaId">) => {
+      setItens((atual) =>
+        atual.map((i) => (i.linhaId === linhaId ? { ...item, linhaId } : i)),
+      );
+    },
+    [],
+  );
+
   const alterarQuantidade = useCallback((linhaId: string, quantidade: number) => {
     setItens((atual) =>
       quantidade <= 0
@@ -91,12 +102,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       totalItens,
       subtotal,
       adicionar,
+      substituir,
       alterarQuantidade,
       remover,
       limpar,
       pronto,
     };
-  }, [itens, adicionar, alterarQuantidade, remover, limpar, pronto]);
+  }, [itens, adicionar, substituir, alterarQuantidade, remover, limpar, pronto]);
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }

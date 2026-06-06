@@ -32,7 +32,7 @@ export function StoreHeader() {
 
   return (
     <header
-      className={`fixed top-0 w-full z-50 bg-primary shadow-md overflow-hidden rounded-b-3xl transition-[height] duration-500 ease-out ${
+      className={`fixed top-0 w-full z-50 bg-primary shadow-md overflow-hidden transition-[height] duration-500 ease-out ${
         modoProduto ? "h-48 sm:h-52 md:h-60" : "h-28 sm:h-32 md:h-36"
       }`}
     >
@@ -99,6 +99,7 @@ export function StoreHeader() {
               alt="Qbombom Sorvetes"
               width={163}
               height={82}
+              priority
               className="object-contain transition-transform duration-300 hover:scale-105"
               style={{
                 height: "70%",

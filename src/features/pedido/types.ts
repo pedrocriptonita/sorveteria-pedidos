@@ -100,3 +100,22 @@ export interface PedidoView {
   itens: ItemPedidoView[];
   pix: PagamentoPixView | null;
 }
+
+// ---------------------------------------------------------------------------
+// Histórico do cliente (login leve por nome + telefone)
+// ---------------------------------------------------------------------------
+
+/** Resumo de um pedido para a lista de histórico do cliente. */
+export interface PedidoHistorico {
+  id: string;
+  numero: number;
+  status: StatusPedidoView;
+  total: number;
+  criadoEm: string; // ISO
+  itens: Array<{
+    nome: string;
+    quantidade: number;
+    tamanho: string | null;
+    opcoes: OpcaoResumo[];
+  }>;
+}

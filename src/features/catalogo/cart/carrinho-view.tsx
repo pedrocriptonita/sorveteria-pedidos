@@ -67,13 +67,23 @@ export function CarrinhoView({ pedidoMinimo }: { pedidoMinimo: number | null }) 
                   </p>
                 ))}
               </div>
-              <button
-                type="button"
-                onClick={() => remover(item.linhaId)}
-                className="shrink-0 text-sm text-destructive underline underline-offset-2"
-              >
-                Remover
-              </button>
+              <div className="flex shrink-0 flex-col items-end gap-1">
+                {item.montavel ? (
+                  <Link
+                    href={`/produto/${item.produtoId}?editar=${item.linhaId}`}
+                    className="text-sm text-primary underline underline-offset-2"
+                  >
+                    Editar
+                  </Link>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() => remover(item.linhaId)}
+                  className="text-sm text-destructive underline underline-offset-2"
+                >
+                  Remover
+                </button>
+              </div>
             </div>
 
             <div className="flex items-center justify-between">
@@ -118,7 +128,7 @@ export function CarrinhoView({ pedidoMinimo }: { pedidoMinimo: number | null }) 
           href="/"
           className={buttonVariants({ variant: "outline", size: "lg", className: "w-full" })}
         >
-          + Continuar comprando
+          + Adicionar mais itens
         </Link>
 
         {abaixoDoMinimo ? (
@@ -133,7 +143,7 @@ export function CarrinhoView({ pedidoMinimo }: { pedidoMinimo: number | null }) 
           </>
         ) : (
           <Link
-            href="/checkout"
+            href="/pedidos"
             className={buttonVariants({ size: "lg", className: "w-full" })}
           >
             Finalizar pedido
