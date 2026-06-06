@@ -1,10 +1,28 @@
-# Sorveteria — Sistema de Pedidos (MVP)
+# DevoraFood — Sistema de Pedidos e Cardápio Digital
 
-Sistema próprio de pedidos e cardápio digital para uma sorveteria (single-tenant):
-cardápio com "monte seu açaí", carrinho, checkout, pagamento (PIX + dinheiro),
+Plataforma própria de pedidos e cardápio digital (single-tenant): cardápio com
+"monte seu açaí", subcategorias, carrinho, checkout, pagamento (PIX + dinheiro),
 impressão automática na cozinha, painel da cozinha (KDS) e painel administrativo.
 
-> **Status:** Fase 8 — UI shell + shadcn (identidade vermelho/branco) no storefront. Próxima: Fase 9 (polimento). Pendências menores: banners, horários, substituição de item, e refino visual de admin/KDS.
+> **Status:** Fase 8 **concluída** (UI shell + identidade da marca; admin com
+> dashboard, barra lateral e cores). **Em andamento: Fase 9 — polimento**
+> (performance, segurança, observabilidade, UX). Já aplicados nesta fase: RLS em
+> todas as tabelas (incl. `subcategorias`) e correção de N+1 no checkout. O
+> backlog de *hardening* para deixar production-ready está em
+> [docs/MELHORIAS.md](docs/MELHORIAS.md).
+
+## Novidades recentes (pós-Fase 7/8)
+
+- **Subcategorias** dentro das categorias (ex.: *Picolés* → Linha Mega / Fruta /
+  ao Leite), gerenciadas no admin e exibidas como **acordeão** no cardápio.
+- **Layout por categoria**: o admin escolhe **carrossel horizontal** ou **grade
+  vertical** (formato de linha compacto) por categoria.
+- **Hub do cliente em `/pedidos`**: login leve (nome + telefone), checkout e
+  **histórico de compras** com **repetir pedido**.
+- **Admin**: **dashboard do dia** (recebidos/entregues/cancelados) +
+  **faturamento mensal** (filtro dos últimos 3 meses), **barra lateral** de
+  navegação e paleta de cores.
+- **Editar item no carrinho** e **sabores de açaí** (atalho de preenchimento).
 
 ## Stack
 
@@ -195,6 +213,8 @@ Configuração.
 | `npm run start` | Servidor de produção |
 | `npm run lint` | ESLint (o `build` não roda mais o linter no Next 16) |
 | `npm run typecheck` | `tsc --noEmit` |
+| `npm test` | Testes unitários (Vitest) — motor de preço |
+| `npm run test:watch` | Vitest em modo watch |
 | `npm run db:migrate` | `prisma migrate dev` (usa `.env.local` via dotenv-cli) |
 | `npm run db:push` | `prisma db push` — sincroniza o schema sem migration |
 | `npm run db:studio` | Prisma Studio |
@@ -236,6 +256,9 @@ prisma/schema.prisma     # modelo de dados (fonte da verdade)
 5. **Checkout + Pedido + Pagamento (PIX/dinheiro)** ✅
 6. **Fila de impressão + KDS** ✅
 7. **Admin: configurações e operação** ✅ _(banners, horários e substituição de item ficam para o polimento)_
-8. **UI Shell e refatoração (shadcn)** ✅ _(storefront com marca vermelho/branco; admin/KDS visual refinado no polimento)_
-9. Polimento (performance, segurança, observabilidade, UX)
+8. **UI Shell e refatoração (shadcn)** ✅ _(storefront com marca; admin refinado: dashboard, barra lateral, cores; subcategorias; hub do cliente)_
+9. **Polimento (performance, segurança, observabilidade, UX)** 🔄 _em andamento_
+   - ✅ RLS em todas as tabelas (incl. `subcategorias`); ✅ N+1 do checkout; ✅ remoção de log do versionamento.
+   - ⏳ Pendências de produto: banners, horários de funcionamento, substituição de item, refino visual do KDS.
+   - ⏳ Hardening (rate-limit, validação Zod, testes, etc.): ver [docs/MELHORIAS.md](docs/MELHORIAS.md).
 ```

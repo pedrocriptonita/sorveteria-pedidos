@@ -21,6 +21,7 @@
 -- ============================================================================
 
 ALTER TABLE public.categorias       ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.subcategorias    ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.produtos         ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.tamanhos         ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.grupos_opcoes    ENABLE ROW LEVEL SECURITY;

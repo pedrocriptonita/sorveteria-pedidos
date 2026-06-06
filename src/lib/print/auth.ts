@@ -1,5 +1,6 @@
 import "server-only";
 import { env } from "@/lib/env";
+import { secureEqual } from "@/lib/secure-compare";
 
 /**
  * Autentica o agente de impressão por token: aceita `Authorization: Bearer
@@ -14,5 +15,5 @@ export function validarAgente(req: Request): boolean {
   const bearer = auth?.startsWith("Bearer ") ? auth.slice(7) : null;
   const recebido = bearer ?? req.headers.get("x-print-token");
 
-  return !!recebido && recebido === esperado;
+  return secureEqual(recebido ?? "", esperado);
 }

@@ -1,5 +1,6 @@
 import type { StatusPagamento } from "@prisma/client";
 import { env, getPspConfig } from "@/lib/env";
+import { secureEqual } from "@/lib/secure-compare";
 import type {
   Cobranca,
   CriarCobrancaInput,
@@ -158,7 +159,8 @@ class AsaasProvider implements PspProvider {
     const recebido = req.headers.get("asaas-access-token");
 
     // Sem segredo configurado ou divergente → rejeita (rota responde 401).
-    if (!secret || !recebido || recebido !== secret) return null;
+    // Comparação em tempo constante (evita timing attack no segredo).
+    if (!secureEqual(recebido ?? "", secret)) return null;
 
     let body: { event?: string; payment?: AsaasPayment };
     try {

@@ -126,3 +126,19 @@ export async function getProduto(id: string): Promise<ProdutoView | null> {
   });
   return produto ? mapProduto(produto) : null;
 }
+
+/**
+ * Vários produtos por id, em UMA query (evita N+1 no checkout e no "repetir").
+ * Retorna um Map id → ProdutoView (só os existentes/não deletados).
+ */
+export async function getProdutosByIds(
+  ids: string[],
+): Promise<Map<string, ProdutoView>> {
+  const unicos = [...new Set(ids)];
+  if (unicos.length === 0) return new Map();
+  const produtos = await prisma.produto.findMany({
+    where: { id: { in: unicos }, deletedAt: null },
+    include: produtoInclude,
+  });
+  return new Map(produtos.map((p) => [p.id, mapProduto(p)]));
+}

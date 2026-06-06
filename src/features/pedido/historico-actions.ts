@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { getProduto } from "@/features/catalogo/data";
+import { getProdutosByIds } from "@/features/catalogo/data";
 import {
   calcularPreco,
   nomeTamanho,
@@ -45,6 +45,11 @@ export async function repetirPedido(
   const avisos: string[] = [];
   if (!pedido) return { itens, avisos: ["Pedido não encontrado."] };
 
+  // Busca todos os produtos do pedido de uma vez (evita N+1).
+  const produtosDoPedido = await getProdutosByIds(
+    pedido.itens.flatMap((i) => (i.produtoId ? [i.produtoId] : [])),
+  );
+
   for (const item of pedido.itens) {
     const nome = item.nomeProdutoSnapshot;
 
@@ -52,7 +57,7 @@ export async function repetirPedido(
       avisos.push(`${nome}: indisponível.`);
       continue;
     }
-    const produto = await getProduto(item.produtoId);
+    const produto = produtosDoPedido.get(item.produtoId);
     if (!produto || !produto.disponivel) {
       avisos.push(`${nome}: não está mais disponível.`);
       continue;

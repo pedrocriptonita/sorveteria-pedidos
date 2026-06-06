@@ -16,19 +16,23 @@ jobs:
           node-version: "20"
           cache: npm
 
-      # npm install (e não npm ci) porque o lockfile é gerado no primeiro
-      # `npm install` local — troque para `npm ci` após commitar o package-lock.json.
+      # Instalação reprodutível a partir do package-lock.json (commitado).
       - name: Install
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
 
+      # `prisma generate` não conecta ao banco e não precisa de .env.local —
+      # roda direto (o script db:generate usa dotenv-cli, que falha no CI).
       - name: Prisma generate
-        run: npm run db:generate
+        run: npx prisma generate
 
       - name: Lint
         run: npm run lint
 
       - name: Typecheck
         run: npm run typecheck
+
+      - name: Test
+        run: npm test
 
       - name: Build
         run: npm run build

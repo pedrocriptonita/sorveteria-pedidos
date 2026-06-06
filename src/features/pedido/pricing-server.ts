@@ -1,5 +1,5 @@
 import "server-only";
-import { getProduto } from "@/features/catalogo/data";
+import { getProdutosByIds } from "@/features/catalogo/data";
 import {
   calcularPreco,
   nomeTamanho,
@@ -25,13 +25,16 @@ export async function recomputarItens(
   const erros: string[] = [];
   let subtotal = 0;
 
+  // Busca todos os produtos do carrinho de uma vez (evita N+1).
+  const produtos = await getProdutosByIds(linhas.map((l) => l.produtoId));
+
   for (const linha of linhas) {
     if (linha.quantidade < 1) {
       erros.push("Quantidade inválida.");
       continue;
     }
 
-    const produto = await getProduto(linha.produtoId);
+    const produto = produtos.get(linha.produtoId);
     if (!produto || !produto.disponivel) {
       erros.push("Um item do carrinho não está mais disponível.");
       continue;

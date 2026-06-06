@@ -7,6 +7,7 @@ import { enfileirarImpressao } from "@/lib/print/queue";
 import { getConfigLoja, calcularTaxaEntrega } from "./config";
 import { recomputarItens } from "./pricing-server";
 import { comandaDeItens } from "./comanda";
+import { checkoutSchema } from "./schema";
 import type { CheckoutInput, ItemRecalculado, ResultadoCriarPedido } from "./types";
 
 /** Dados de ItemPedido a partir do item recalculado (com snapshots). */
@@ -30,8 +31,11 @@ function itemPedidoData(i: ItemRecalculado): Prisma.ItemPedidoCreateWithoutPedid
 export async function criarPedido(
   input: CheckoutInput,
 ): Promise<ResultadoCriarPedido> {
-  if (!input.cliente.nome.trim() || !input.cliente.telefone.trim()) {
-    return { ok: false, erro: "Informe nome e telefone." };
+  // Validação de forma/limites do payload (client não é confiável). Os preços
+  // continuam recalculados no servidor; aqui barramos entradas malformadas.
+  const validacao = checkoutSchema.safeParse(input);
+  if (!validacao.success) {
+    return { ok: false, erro: "Dados do pedido inválidos. Revise e tente novamente." };
   }
 
   const cfg = await getConfigLoja();
@@ -74,6 +78,24 @@ export async function criarPedido(
     update: { nome: input.cliente.nome.trim() },
     create: { nome: input.cliente.nome.trim(), telefone },
   });
+
+  // Anti-abuso: 1 pedido aguardando pagamento por cliente a cada 60s.
+  // `criarPedido` é uma action pública que gera cobrança no PSP; sem isso um
+  // bot poderia criar centenas de cobranças (custo/risco) e poluir o KDS.
+  const pendenteRecente = await prisma.pedido.findFirst({
+    where: {
+      clienteId: cliente.id,
+      status: "AGUARDANDO_PAGAMENTO",
+      createdAt: { gte: new Date(Date.now() - 60_000) },
+    },
+    select: { id: true },
+  });
+  if (pendenteRecente) {
+    return {
+      ok: false,
+      erro: "Você já tem um pedido aguardando pagamento. Conclua-o antes de criar outro.",
+    };
+  }
 
   // Anti-trote: cliente bloqueado não paga em dinheiro.
   if (input.formaPagamento === "DINHEIRO" && cliente.bloqueado) {
