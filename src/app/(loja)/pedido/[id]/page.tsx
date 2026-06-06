@@ -3,22 +3,10 @@ import { notFound } from "next/navigation";
 import { getPedidoView } from "@/features/pedido/data";
 import { PixPayment } from "@/features/pedido/components/pix-payment";
 import { WhatsappButton } from "@/features/pedido/components/whatsapp-button";
-import type { StatusPedidoView } from "@/features/pedido/types";
+import { STATUS_LABEL_CLIENTE } from "@/features/pedido/status";
 import { formatBRL } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
-
-const STATUS_LABEL: Record<StatusPedidoView, string> = {
-  AGUARDANDO_PAGAMENTO: "Aguardando pagamento",
-  PAGO: "Pagamento confirmado",
-  NA_FILA: "Pedido confirmado — na fila",
-  IMPRESSO: "Em preparo",
-  EM_PREPARO: "Em preparo",
-  PRONTO: "Pronto!",
-  SAIU_PARA_ENTREGA: "Saiu para entrega",
-  ENTREGUE: "Entregue",
-  CANCELADO: "Cancelado",
-};
 
 export default async function PedidoPage({
   params,
@@ -41,7 +29,9 @@ export default async function PedidoPage({
         <span className="text-sm text-muted-foreground">
           Pedido #{pedido.numero}
         </span>
-        <h1 className="text-2xl font-bold">{STATUS_LABEL[pedido.status]}</h1>
+        <h1 className="text-2xl font-bold">
+          {STATUS_LABEL_CLIENTE[pedido.status]}
+        </h1>
         {pedido.status === "CANCELADO" ? (
           <p className="text-sm text-destructive">
             Este pedido foi cancelado. Se precisar, faça um novo.

@@ -107,9 +107,10 @@
 - Webhook PSP (`src/lib/psp/asaas.ts`) e print (`src/lib/print/auth.ts`) usavam `!==`.
 - **Feito:** helper `secureEqual()` em `src/lib/secure-compare.ts` (usa `crypto.timingSafeEqual`) aplicado nos dois pontos.
 
-### M2. De-duplicar constantes
-- `CLIENTE_KEY` repetido em `checkout-form.tsx` e `pedidos-hub.tsx` → criar `src/features/pedido/storage.ts`.
-- `STATUS_LABEL` repetido em `app/admin/pedidos`, `app/(loja)/pedido/[id]`, `pedidos-hub.tsx` → centralizar em `src/features/pedido/status.ts`.
+### M2. De-duplicar constantes ✅ FEITO
+- ✅ `CLIENTE_KEY` + helpers em `src/features/pedido/storage.ts` (`lerClienteSalvo`/`salvarCliente`), usados por `checkout-form.tsx` e `pedidos-hub.tsx`.
+- ✅ Rótulos em `src/features/pedido/status.ts` (`STATUS_LABEL_CURTO` p/ admin+histórico, `STATUS_LABEL_CLIENTE` p/ tela de status), usados nos 3 pontos.
+- Bônus: removido import morto (`formatBRL`) — lint 100% limpo.
 
 ### M3. Higiene de repo/CI ✅ FEITO
 - ✅ `dev-server.log` removido do git + `*.log` no `.gitignore`.
@@ -130,6 +131,6 @@
 ---
 
 ## Ordem sugerida de execução
-C1 ✅ → C2 ✅ → M1 ✅ → A1 ✅(checkout) → A2 ✅ → M3 ✅ → A3 ✅(motor) → **M2** → **M4** → A1(webhooks) → 🟢 baixos.
+C1 ✅ → C2 ✅ → M1 ✅ → A1 ✅(checkout) → A2 ✅ → M3 ✅ → A3 ✅(motor) → M2 ✅ → **M4** → A1(webhooks) → 🟢 baixos.
 
-> Restam (sem dependências novas): **M2** (de-duplicar `CLIENTE_KEY`/`STATUS_LABEL`), **M4** (README como doc de produto), A1(webhooks) e os 🟢 baixos.
+> Restam: **M4** (README como doc de produto), A1(webhooks) e os 🟢 baixos (headers de segurança, error.tsx, observabilidade, a11y).

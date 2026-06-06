@@ -7,44 +7,18 @@ import { useCart } from "@/features/catalogo/cart/cart-provider";
 import { CheckoutForm } from "./checkout-form";
 import { buscarHistorico, repetirPedido } from "../historico-actions";
 import type { ConfigLojaView, PedidoHistorico } from "../types";
+import {
+  lerClienteSalvo,
+  salvarCliente,
+  type ClienteSalvo,
+} from "../storage";
+import { STATUS_LABEL_CURTO } from "../status";
 import { formatBRL } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
-const CLIENTE_KEY = "sorveteria:cliente:v1";
-
-interface Cliente {
-  nome: string;
-  telefone: string;
-}
-
-function lerCliente(): Cliente | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = window.localStorage.getItem(CLIENTE_KEY);
-    if (!raw) return null;
-    const c = JSON.parse(raw) as Partial<Cliente>;
-    if (c.nome && c.telefone) return { nome: c.nome, telefone: c.telefone };
-  } catch {
-    // ignora
-  }
-  return null;
-}
-
 const inputClass =
   "w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40";
-
-const STATUS_LABEL: Record<string, string> = {
-  AGUARDANDO_PAGAMENTO: "Aguardando pagamento",
-  PAGO: "Pago",
-  NA_FILA: "Na fila",
-  IMPRESSO: "Em preparo",
-  EM_PREPARO: "Em preparo",
-  PRONTO: "Pronto",
-  SAIU_PARA_ENTREGA: "Saiu p/ entrega",
-  ENTREGUE: "Entregue",
-  CANCELADO: "Cancelado",
-};
 
 function dataCurta(iso: string): string {
   return new Date(iso).toLocaleDateString("pt-BR", {
@@ -56,7 +30,9 @@ function dataCurta(iso: string): string {
 
 export function PedidosHub({ config }: { config: ConfigLojaView | null }) {
   const { itens, pronto, adicionar } = useCart();
-  const [cliente, setCliente] = useState<Cliente | null>(() => lerCliente());
+  const [cliente, setCliente] = useState<ClienteSalvo | null>(() =>
+    lerClienteSalvo(),
+  );
 
   // Form de login leve.
   const [nome, setNome] = useState("");
@@ -76,11 +52,7 @@ export function PedidosHub({ config }: { config: ConfigLojaView | null }) {
       return;
     }
     const c = { nome: nome.trim(), telefone: telefone.trim() };
-    try {
-      localStorage.setItem(CLIENTE_KEY, JSON.stringify(c));
-    } catch {
-      // ignora
-    }
+    salvarCliente(c);
     setCliente(c);
   }
 
@@ -225,7 +197,7 @@ function Historico({
                 <span className="text-sm font-semibold">#{p.numero}</span>
                 <span className="text-xs text-muted-foreground">
                   {dataCurta(p.criadoEm)} ·{" "}
-                  {STATUS_LABEL[p.status] ?? p.status}
+                  {STATUS_LABEL_CURTO[p.status] ?? p.status}
                 </span>
               </div>
               <ul className="flex flex-col gap-0.5 text-sm text-muted-foreground">

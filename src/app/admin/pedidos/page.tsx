@@ -6,21 +6,11 @@ import {
   mesesDisponiveis,
 } from "@/features/admin/operacao-data";
 import { cancelarPedido } from "@/features/admin/operacao-actions";
+import { STATUS_LABEL_CURTO } from "@/features/pedido/status";
+import type { StatusPedidoView } from "@/features/pedido/types";
 import { formatBRL } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
-
-const STATUS_LABEL: Record<string, string> = {
-  AGUARDANDO_PAGAMENTO: "Aguardando pagamento",
-  PAGO: "Pago",
-  NA_FILA: "Na fila",
-  IMPRESSO: "Impresso",
-  EM_PREPARO: "Em preparo",
-  PRONTO: "Pronto",
-  SAIU_PARA_ENTREGA: "Saiu p/ entrega",
-  ENTREGUE: "Entregue",
-  CANCELADO: "Cancelado",
-};
 
 function dataCurta(iso: string): string {
   return new Date(iso).toLocaleString("pt-BR", {
@@ -134,7 +124,8 @@ export default async function PedidosAdminPage({
                 <div className="flex items-center gap-2 text-sm">
                   <span className="font-bold">#{p.numero}</span>
                   <span className="rounded bg-neutral-100 px-1.5 py-0.5 text-xs dark:bg-neutral-800">
-                    {STATUS_LABEL[p.status] ?? p.status}
+                    {STATUS_LABEL_CURTO[p.status as StatusPedidoView] ??
+                      p.status}
                   </span>
                   <span className="text-neutral-500">
                     {p.formaPagamento === "DINHEIRO" ? "💵" : "PIX"} ·{" "}

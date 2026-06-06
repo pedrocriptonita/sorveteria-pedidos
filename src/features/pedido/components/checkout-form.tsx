@@ -11,23 +11,7 @@ import type {
 } from "../types";
 import { formatBRL } from "@/lib/format";
 import { Button } from "@/components/ui/button";
-
-const CLIENTE_KEY = "sorveteria:cliente:v1";
-
-/** Lê o cliente recorrente do localStorage (client-only; vazio no SSR). */
-function lerCliente(): { nome: string; telefone: string } {
-  if (typeof window === "undefined") return { nome: "", telefone: "" };
-  try {
-    const raw = window.localStorage.getItem(CLIENTE_KEY);
-    if (raw) {
-      const c = JSON.parse(raw) as { nome?: string; telefone?: string };
-      return { nome: c.nome ?? "", telefone: c.telefone ?? "" };
-    }
-  } catch {
-    // ignora
-  }
-  return { nome: "", telefone: "" };
-}
+import { lerClienteSalvo, salvarCliente } from "../storage";
 
 const inputClass =
   "w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40";
@@ -38,8 +22,10 @@ export function CheckoutForm({ config }: { config: ConfigLojaView | null }) {
   const [pending, startTransition] = useTransition();
   const [erro, setErro] = useState<string | null>(null);
 
-  const [nome, setNome] = useState(() => lerCliente().nome);
-  const [telefone, setTelefone] = useState(() => lerCliente().telefone);
+  const [nome, setNome] = useState(() => lerClienteSalvo()?.nome ?? "");
+  const [telefone, setTelefone] = useState(
+    () => lerClienteSalvo()?.telefone ?? "",
+  );
   const [tipoEntrega, setTipoEntrega] = useState<TipoEntrega>("RETIRADA");
   const [endereco, setEndereco] = useState("");
   const [complemento, setComplemento] = useState("");
@@ -90,11 +76,7 @@ export function CheckoutForm({ config }: { config: ConfigLojaView | null }) {
         return;
       }
 
-      try {
-        localStorage.setItem(CLIENTE_KEY, JSON.stringify({ nome, telefone }));
-      } catch {
-        // ignora
-      }
+      salvarCliente({ nome, telefone });
       limpar();
       router.push(`/pedido/${res.pedidoId}`);
     });

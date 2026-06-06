@@ -20,7 +20,6 @@ import {
   toggleProdutoDisponivel,
 } from "@/features/admin/actions";
 import { Button } from "@/components/ui/button";
-import { formatBRL } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
