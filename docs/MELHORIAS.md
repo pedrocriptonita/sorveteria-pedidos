@@ -116,8 +116,9 @@
 - ✅ `dev-server.log` removido do git + `*.log` no `.gitignore`.
 - ✅ CI: `npm install` → `npm ci`; passo de generate usa `npx prisma generate` (sem dotenv).
 
-### M4. README como doc de produto
-- Atualizar status/roadmap, trocar marca para **DevoraFood**, separar "como rodar/deploy" do diário de fases.
+### M4. README como doc de produto ✅ FEITO
+- ✅ README enxuto e orientado a produto (Funcionalidades, Stack, Como rodar, Scripts, Estrutura, Deploy, Roadmap); marca **DevoraFood**.
+- ✅ Diário de fases ("Como testar a Fase X") movido para `docs/FASES.md`.
 
 ---
 
@@ -131,6 +132,8 @@
 ---
 
 ## Ordem sugerida de execução
-C1 ✅ → C2 ✅ → M1 ✅ → A1 ✅(checkout) → A2 ✅ → M3 ✅ → A3 ✅(motor) → M2 ✅ → **M4** → A1(webhooks) → 🟢 baixos.
+C1 ✅ → C2 ✅ → M1 ✅ → A1 ✅(checkout) → A2 ✅ → M3 ✅ → A3 ✅(motor) → M2 ✅ → M4 ✅ → **A1(webhooks)** → 🟢 baixos.
 
-> Restam: **M4** (README como doc de produto), A1(webhooks) e os 🟢 baixos (headers de segurança, error.tsx, observabilidade, a11y).
+> Restam: A1(webhooks — Zod nos bodies de `/api/webhooks/*`) e os 🟢 baixos
+> (headers de segurança no `next.config.ts`, `error.tsx`/`not-found.tsx`,
+> observabilidade/Sentry, a11y, mover `landing-vendas.html`).
