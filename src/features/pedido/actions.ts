@@ -35,6 +35,11 @@ export async function criarPedido(
   // continuam recalculados no servidor; aqui barramos entradas malformadas.
   const validacao = checkoutSchema.safeParse(input);
   if (!validacao.success) {
+    // Observabilidade: registra os campos rejeitados (sem dados sensíveis).
+    console.warn(
+      "[criarPedido] payload inválido:",
+      validacao.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`),
+    );
     return { ok: false, erro: "Dados do pedido inválidos. Revise e tente novamente." };
   }
 

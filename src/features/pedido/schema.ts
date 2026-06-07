@@ -13,7 +13,9 @@ const idSchema = z.string().min(1).max(64);
 
 export const checkoutSchema = z.object({
   cliente: z.object({
-    nome: z.string().trim().min(2).max(80),
+    // min(1): alinha com o login leve (nome não-vazio); evita rejeitar pedido
+    // de cliente com nome curto salvo no localStorage.
+    nome: z.string().trim().min(1).max(80),
     telefone: z.string().trim().min(8).max(20),
   }),
   tipoEntrega: z.enum(["RETIRADA", "DELIVERY"]),
