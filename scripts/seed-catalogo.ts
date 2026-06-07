@@ -115,7 +115,7 @@ async function main() {
   if (!cfg) {
     await prisma.configLoja.create({
       data: {
-        nomeLoja: "Sorveteria do Pedro",
+        nomeLoja: "Qbombom Sorvetes",
         tipoTaxa: "FIXA",
         taxaFixa: 5,
         pedidoMinimo: 15,

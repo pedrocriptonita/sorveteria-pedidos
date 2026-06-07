@@ -44,7 +44,7 @@ export async function POST(req: Request) {
   if (!telefone) return NextResponse.json({ ignored: true });
 
   const appUrl = env.appUrl.replace(/\/$/, "");
-  const saudacao = `Olá! 👋 Bem-vindo à Sorveteria do Pedro 🍦
+  const saudacao = `Olá! 👋 Bem-vindo à Qbombom Sorvetes 🍦
 
 Monte seu pedido agora pelo nosso cardápio digital:
 👉 ${appUrl}
