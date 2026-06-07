@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useCart } from "../cart/cart-provider";
 import type { ProdutoView } from "../types";
 import { formatBRL } from "@/lib/format";
 
@@ -19,6 +18,11 @@ function FotoPlaceholder() {
   );
 }
 
+/**
+ * Card do produto no cardápio. O card INTEIRO é clicável e leva à página do
+ * produto, onde o cliente confirma e adiciona ao carrinho — evita o "+" de
+ * toque rápido (e o risco de duplicar item sem querer).
+ */
 export function ProdutoCard({
   produto,
   priority = false,
@@ -27,28 +31,10 @@ export function ProdutoCard({
   /** true para o primeiro card acima da dobra (melhora o LCP). */
   priority?: boolean;
 }) {
-  const { adicionar } = useCart();
   const indisponivel = !produto.disponivel;
 
-  function adicionarSimples() {
-    adicionar({
-      produtoId: produto.id,
-      nomeProduto: produto.nome,
-      montavel: false,
-      tamanhoNome: null,
-      opcoesResumo: [],
-      quantidade: 1,
-      precoUnitario: produto.preco ?? 0,
-      config: { tamanhoId: null, selecoes: {} },
-    });
-  }
-
-  return (
-    <div
-      className={`bg-white rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.06)] relative flex flex-col transition-transform active:scale-[0.98] ${
-        indisponivel ? "opacity-60" : ""
-      }`}
-    >
+  const conteudo = (
+    <>
       {/* Área da foto */}
       <div className="relative aspect-square rounded-t-xl overflow-hidden bg-[#fdf1f0]">
         {produto.foto ? (
@@ -83,26 +69,23 @@ export function ProdutoCard({
             : formatBRL(produto.preco ?? 0)}
         </span>
       </div>
+    </>
+  );
 
-      {/* Botão + circular */}
-      {indisponivel ? null : produto.montavel ? (
-        <Link
-          href={`/produto/${produto.id}`}
-          className="absolute bottom-3 right-3 w-9 h-9 bg-primary text-white rounded-full flex items-center justify-center shadow-md hover:bg-primary/90 active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 z-10"
-          aria-label={`Montar ${produto.nome}`}
-        >
-          <span className="material-symbols-outlined text-[20px]">add</span>
-        </Link>
-      ) : (
-        <button
-          type="button"
-          onClick={adicionarSimples}
-          className="absolute bottom-3 right-3 w-9 h-9 bg-primary text-white rounded-full flex items-center justify-center shadow-md hover:bg-primary/90 active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 z-10"
-          aria-label={`Adicionar ${produto.nome}`}
-        >
-          <span className="material-symbols-outlined text-[20px]">add</span>
-        </button>
-      )}
-    </div>
+  const base =
+    "bg-white rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.06)] relative flex flex-col";
+
+  if (indisponivel) {
+    return <div className={`${base} opacity-60`}>{conteudo}</div>;
+  }
+
+  return (
+    <Link
+      href={`/produto/${produto.id}`}
+      aria-label={`Ver ${produto.nome}`}
+      className={`${base} block transition-transform active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2`}
+    >
+      {conteudo}
+    </Link>
   );
 }

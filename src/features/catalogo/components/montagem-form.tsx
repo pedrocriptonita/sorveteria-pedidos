@@ -98,7 +98,7 @@ export function MontagemForm({
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 pb-40">
       {produto.tamanhos.length > 0 ? (
         <fieldset className="flex flex-col gap-2">
           <legend className="mb-1 font-medium">Tamanho</legend>
@@ -185,49 +185,51 @@ export function MontagemForm({
         );
       })}
 
-      {/* Quantidade + adicionar */}
-      <div className="sticky bottom-0 flex flex-col gap-3 border-t border-border bg-background pt-4">
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-medium">Quantidade</span>
-          <div className="flex items-center gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => setQuantidade((q) => Math.max(1, q - 1))}
-              aria-label="Diminuir"
-            >
-              −
-            </Button>
-            <span className="w-6 text-center">{quantidade}</span>
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => setQuantidade((q) => q + 1)}
-              aria-label="Aumentar"
-            >
-              +
-            </Button>
+      {/* Barra de ação FIXA, logo acima do menu inferior (BottomNav h-20). */}
+      <div className="fixed inset-x-0 bottom-20 z-40 border-t border-border bg-background shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
+        <div className="mx-auto flex max-w-md flex-col gap-3 px-4 py-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium">Quantidade</span>
+            <div className="flex items-center gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setQuantidade((q) => Math.max(1, q - 1))}
+                aria-label="Diminuir"
+              >
+                −
+              </Button>
+              <span className="w-6 text-center">{quantidade}</span>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setQuantidade((q) => q + 1)}
+                aria-label="Aumentar"
+              >
+                +
+              </Button>
+            </div>
           </div>
+
+          {!valido ? (
+            <p className="text-sm text-destructive">{resultado.erros[0]}</p>
+          ) : null}
+
+          <Button
+            type="button"
+            size="lg"
+            className="w-full"
+            onClick={adicionarAoCarrinho}
+            disabled={!valido}
+          >
+            {editando ? "Salvar alterações" : "Adicionar ao carrinho"} ·{" "}
+            {formatBRL(resultado.precoUnitario * quantidade)}
+          </Button>
         </div>
-
-        {!valido ? (
-          <p className="text-sm text-destructive">{resultado.erros[0]}</p>
-        ) : null}
-
-        <Button
-          type="button"
-          size="lg"
-          className="w-full"
-          onClick={adicionarAoCarrinho}
-          disabled={!valido}
-        >
-          {editando ? "Salvar alterações" : "Adicionar"}{" "}
-          {formatBRL(resultado.precoUnitario * quantidade)}
-        </Button>
       </div>
     </div>
   );

@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useCart } from "../cart/cart-provider";
 import type { ProdutoView } from "../types";
 import { formatBRL } from "@/lib/format";
 
@@ -12,9 +11,8 @@ function precoBaseMontavel(produto: ProdutoView): number {
 }
 
 /**
- * Cartão do produto em formato de LINHA compacto (foto pequena à esquerda,
- * nome/preço no meio, botão "+" à direita). Usado no layout GRADE — bom para
- * categorias com muitos itens (ex.: linhas de picolé).
+ * Produto em formato de LINHA compacto (layout GRADE). A linha inteira é
+ * clicável e leva à página do produto, onde o cliente adiciona ao carrinho.
  */
 export function ProdutoLinha({
   produto,
@@ -24,28 +22,10 @@ export function ProdutoLinha({
   /** true para a primeira linha acima da dobra (melhora o LCP). */
   priority?: boolean;
 }) {
-  const { adicionar } = useCart();
   const indisponivel = !produto.disponivel;
 
-  function adicionarSimples() {
-    adicionar({
-      produtoId: produto.id,
-      nomeProduto: produto.nome,
-      montavel: false,
-      tamanhoNome: null,
-      opcoesResumo: [],
-      quantidade: 1,
-      precoUnitario: produto.preco ?? 0,
-      config: { tamanhoId: null, selecoes: {} },
-    });
-  }
-
-  return (
-    <div
-      className={`flex items-center gap-3 rounded-xl bg-white p-2 shadow-[0px_2px_10px_rgba(0,0,0,0.05)] ${
-        indisponivel ? "opacity-60" : ""
-      }`}
-    >
+  const conteudo = (
+    <>
       {/* Foto */}
       <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-[#fdf1f0]">
         {produto.foto ? (
@@ -81,25 +61,32 @@ export function ProdutoLinha({
         ) : null}
       </div>
 
-      {/* Ação */}
-      {indisponivel ? null : produto.montavel ? (
-        <Link
-          href={`/produto/${produto.id}`}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-white shadow-md transition-all hover:bg-primary/90 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-          aria-label={`Montar ${produto.nome}`}
+      {/* Indicador de que abre a página do produto */}
+      {indisponivel ? null : (
+        <span
+          className="material-symbols-outlined shrink-0 text-muted-foreground"
+          aria-hidden
         >
-          <span className="material-symbols-outlined text-[20px]">add</span>
-        </Link>
-      ) : (
-        <button
-          type="button"
-          onClick={adicionarSimples}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-white shadow-md transition-all hover:bg-primary/90 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-          aria-label={`Adicionar ${produto.nome}`}
-        >
-          <span className="material-symbols-outlined text-[20px]">add</span>
-        </button>
+          chevron_right
+        </span>
       )}
-    </div>
+    </>
+  );
+
+  const base =
+    "flex items-center gap-3 rounded-xl bg-white p-2 shadow-[0px_2px_10px_rgba(0,0,0,0.05)]";
+
+  if (indisponivel) {
+    return <div className={`${base} opacity-60`}>{conteudo}</div>;
+  }
+
+  return (
+    <Link
+      href={`/produto/${produto.id}`}
+      aria-label={`Ver ${produto.nome}`}
+      className={`${base} transition-transform active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-primary`}
+    >
+      {conteudo}
+    </Link>
   );
 }
