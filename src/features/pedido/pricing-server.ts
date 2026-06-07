@@ -60,6 +60,7 @@ export async function recomputarItens(
       quantidade: linha.quantidade,
       precoUnitario,
       precoTotal,
+      observacao: linha.observacao?.trim() || null,
     });
   }
 

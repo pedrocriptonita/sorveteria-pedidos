@@ -66,6 +66,11 @@ export function CarrinhoView({ pedidoMinimo }: { pedidoMinimo: number | null }) 
                     {op.itens.join(", ")}
                   </p>
                 ))}
+                {item.observacao ? (
+                  <p className="text-xs italic text-muted-foreground">
+                    “{item.observacao}”
+                  </p>
+                ) : null}
               </div>
               <div className="flex shrink-0 flex-col items-end gap-1">
                 {item.montavel ? (

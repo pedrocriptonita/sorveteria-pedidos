@@ -35,6 +35,7 @@ export const checkoutSchema = z.object({
       z.object({
         produtoId: idSchema,
         quantidade: z.number().int().min(1).max(99),
+        observacao: z.string().max(200).optional(),
         config: z.object({
           tamanhoId: idSchema.nullable(),
           selecoes: z.record(z.string(), z.array(idSchema).max(50)),

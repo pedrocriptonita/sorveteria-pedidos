@@ -68,6 +68,7 @@ export function CheckoutForm({ config }: { config: ConfigLojaView | null }) {
           produtoId: i.produtoId,
           config: i.config,
           quantidade: i.quantidade,
+          observacao: i.observacao,
         })),
       });
 

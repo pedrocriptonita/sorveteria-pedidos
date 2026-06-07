@@ -26,7 +26,10 @@ export function comandaDeItens(
     itens: itens.map((i) => ({
       nome: i.nomeProduto,
       quantidade: i.quantidade,
-      observacao: detalhe(i.tamanhoNome, i.opcoesResumo) || undefined,
+      observacao:
+        [detalhe(i.tamanhoNome, i.opcoesResumo), i.observacao]
+          .filter(Boolean)
+          .join(" · ") || undefined,
     })),
     observacao,
     total,

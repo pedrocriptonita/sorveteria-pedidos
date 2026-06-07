@@ -18,6 +18,7 @@ function itemPedidoData(i: ItemRecalculado): Prisma.ItemPedidoCreateWithoutPedid
     precoTotal: i.precoTotal,
     tamanho: i.tamanhoNome,
     opcoes: i.opcoesResumo as unknown as Prisma.InputJsonValue,
+    observacao: i.observacao,
     nomeProdutoSnapshot: i.nomeProduto,
     produto: { connect: { id: i.produtoId } },
   };

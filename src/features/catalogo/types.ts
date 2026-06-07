@@ -91,6 +91,8 @@ export interface CartItem {
   opcoesResumo: OpcaoResumo[];
   quantidade: number;
   precoUnitario: number;
+  /** Observação do cliente para este item (ex.: "bem gelado"). */
+  observacao?: string;
   /** Config crua, para permitir editar a linha depois. */
   config: SelecaoConfig;
 }

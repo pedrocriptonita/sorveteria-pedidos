@@ -8,6 +8,8 @@ export interface CheckoutLinha {
   produtoId: string;
   config: SelecaoConfig;
   quantidade: number;
+  /** Observação do cliente para este item. */
+  observacao?: string;
 }
 
 export interface EnderecoInput {
@@ -42,6 +44,7 @@ export interface ItemRecalculado {
   quantidade: number;
   precoUnitario: number;
   precoTotal: number;
+  observacao: string | null;
 }
 
 /** Config da loja exposta ao checkout (client). */
