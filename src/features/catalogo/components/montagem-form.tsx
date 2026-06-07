@@ -189,23 +189,21 @@ export function MontagemForm({
         );
       })}
 
-      {/* Observação do item (produtos não montáveis) */}
-      {!produto.montavel ? (
-        <div className="flex flex-col gap-2">
-          <label htmlFor="obs-item" className="text-sm font-medium">
-            Alguma observação?
-          </label>
-          <textarea
-            id="obs-item"
-            rows={3}
-            maxLength={200}
-            value={observacao}
-            onChange={(e) => setObservacao(e.target.value)}
-            placeholder="Ex.: bem gelado, sem canudo, capricha na calda…"
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40"
-          />
-        </div>
-      ) : null}
+      {/* Observação do item (todos os produtos) */}
+      <div className="flex flex-col gap-2">
+        <label htmlFor="obs-item" className="text-sm font-medium">
+          Alguma observação?
+        </label>
+        <textarea
+          id="obs-item"
+          rows={3}
+          maxLength={200}
+          value={observacao}
+          onChange={(e) => setObservacao(e.target.value)}
+          placeholder="Ex.: bem gelado, sem canudo, capricha na calda…"
+          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40"
+        />
+      </div>
 
       {/* Barra de ação FIXA, logo acima do menu inferior (BottomNav h-20). */}
       <div className="fixed inset-x-0 bottom-20 z-40 border-t border-border bg-background shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
