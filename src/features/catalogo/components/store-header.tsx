@@ -32,17 +32,15 @@ export function StoreHeader() {
 
   return (
     <header
-      className={`fixed top-0 w-full z-50 bg-primary shadow-md overflow-hidden transition-[height] duration-500 ease-out ${
-        modoProduto ? "h-48 sm:h-52 md:h-60" : "h-28 sm:h-32 md:h-36"
-      }`}
+      className={`fixed top-0 w-full z-50 bg-primary shadow-md overflow-hidden transition-[height] duration-500 ease-out ${modoProduto ? "h-48 sm:h-52 md:h-60" : "h-28 sm:h-32 md:h-36"
+        }`}
     >
       {/* ===== Camada FOTO DO PRODUTO (modo produto) ===== */}
       <div
-        className={`absolute inset-0 transition-all duration-500 ease-out ${
-          modoProduto
+        className={`absolute inset-0 transition-all duration-500 ease-out ${modoProduto
             ? "opacity-100 scale-100"
             : "pointer-events-none opacity-0 scale-95"
-        }`}
+          }`}
       >
         {produtoHero?.foto ? (
           <Image
@@ -88,21 +86,20 @@ export function StoreHeader() {
         {/* Centro: logo (some no modo produto) */}
         <Link
           href="/"
-          className={`flex items-center justify-center transition-opacity duration-300 ${
-            modoProduto ? "pointer-events-none opacity-0" : "opacity-100"
-          }`}
+          className={`flex items-center justify-center transition-opacity duration-300 ${modoProduto ? "pointer-events-none opacity-0" : "opacity-100"
+            }`}
           style={{ perspective: "600px" }}
         >
           {!logoError ? (
             <Image
-              src="/logo.png"
+              src="/logo.svg"
               alt="Qbombom Sorvetes"
               width={163}
               height={82}
               priority
               className="object-contain transition-transform duration-300 hover:scale-105"
               style={{
-                height: "70%",
+                height: "60px",
                 width: "auto",
                 transform: "rotateX(6deg) rotateY(-8deg)",
                 filter:
@@ -121,9 +118,8 @@ export function StoreHeader() {
         {/* Direita: carrinho com badge */}
         <Link
           href="/carrinho"
-          className={`relative flex h-10 w-10 items-center justify-center rounded-full text-primary-foreground/80 transition-colors hover:text-primary-foreground focus:outline-none focus:ring-2 focus:ring-primary-foreground/20 ${
-            modoProduto ? "bg-black/20 backdrop-blur-sm" : ""
-          }`}
+          className={`relative flex h-10 w-10 items-center justify-center rounded-full text-primary-foreground/80 transition-colors hover:text-primary-foreground focus:outline-none focus:ring-2 focus:ring-primary-foreground/20 ${modoProduto ? "bg-black/20 backdrop-blur-sm" : ""
+            }`}
         >
           <span className="material-symbols-outlined">shopping_cart</span>
           {pronto && totalItens > 0 ? (
