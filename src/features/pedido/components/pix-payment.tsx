@@ -9,11 +9,37 @@ interface Props {
   pedidoId: string;
   qrCode: string | null;
   copiaCola: string | null;
+  /** Quando o código PIX expira (ISO). null = sem prazo conhecido. */
+  expiraEm: string | null;
 }
 
-export function PixPayment({ pedidoId, qrCode, copiaCola }: Props) {
+/** Formata segundos restantes como "m:ss". */
+function mmss(segundos: number): string {
+  const m = Math.floor(segundos / 60);
+  const s = segundos % 60;
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
+
+export function PixPayment({ pedidoId, qrCode, copiaCola, expiraEm }: Props) {
   const router = useRouter();
   const [copiado, setCopiado] = useState(false);
+  // Contador regressivo (segundos restantes). null = sem prazo / antes de montar
+  // (começa null para o 1º render bater com o SSR; o efeito atualiza ao montar).
+  const [restante, setRestante] = useState<number | null>(null);
+
+  // Tempo real de expiração do QR Code (atualiza a cada 1s).
+  useEffect(() => {
+    if (!expiraEm) return;
+    const alvo = new Date(expiraEm).getTime();
+    function atualizar() {
+      setRestante(Math.max(0, Math.round((alvo - Date.now()) / 1000)));
+    }
+    atualizar();
+    const id = setInterval(atualizar, 1000);
+    return () => clearInterval(id);
+  }, [expiraEm]);
+
+  const expirado = restante !== null && restante <= 0;
 
   // Polling do status: confirma via webhook OU checagem ao vivo no PSP.
   useEffect(() => {
@@ -72,10 +98,32 @@ export function PixPayment({ pedidoId, qrCode, copiaCola }: Props) {
         </div>
       ) : null}
 
-      <p className="flex items-center gap-2 text-sm text-muted-foreground">
-        <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-primary" />
-        Aguardando pagamento…
-      </p>
+      {expirado ? (
+        <p className="text-center text-sm font-medium text-destructive">
+          Código PIX expirado. Faça um novo pedido para gerar outro.
+        </p>
+      ) : (
+        <div className="flex flex-col items-center gap-1.5">
+          {restante !== null ? (
+            <span
+              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold ${
+                restante <= 60
+                  ? "bg-destructive/10 text-destructive"
+                  : "bg-accent text-accent-foreground"
+              }`}
+            >
+              <span className="material-symbols-outlined text-[18px]">
+                timer
+              </span>
+              Expira em {mmss(restante)}
+            </span>
+          ) : null}
+          <p className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-primary" />
+            Aguardando pagamento…
+          </p>
+        </div>
+      )}
     </Card>
   );
 }

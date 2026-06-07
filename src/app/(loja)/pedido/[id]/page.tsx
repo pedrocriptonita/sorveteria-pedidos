@@ -44,6 +44,7 @@ export default async function PedidoPage({
           pedidoId={pedido.id}
           qrCode={pedido.pix!.qrCode}
           copiaCola={pedido.pix!.copiaCola}
+          expiraEm={pedido.pix!.expiraEm}
         />
       ) : null}
 
