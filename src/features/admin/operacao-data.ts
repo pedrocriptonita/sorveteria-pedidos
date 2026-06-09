@@ -92,10 +92,10 @@ function limitesDoMes(mes: string): { inicio: Date; fim: Date } {
   return { inicio, fim };
 }
 
-/** Dashboard do dia: pedidos recebidos, entregues e cancelados hoje. */
+/** Dashboard do dia: pedidos recebidos, entregues, cancelados e repasse ao entregador. */
 export async function getDashboardHoje(): Promise<DashboardHoje> {
   const desde = inicioDeHoje();
-  const [recebidos, entregues, cancelados] = await Promise.all([
+  const [recebidos, entregues, cancelados, entregas] = await Promise.all([
     prisma.pedido.count({ where: { createdAt: { gte: desde } } }),
     prisma.pedido.count({
       where: { createdAt: { gte: desde }, status: "ENTREGUE" },
@@ -103,8 +103,25 @@ export async function getDashboardHoje(): Promise<DashboardHoje> {
     prisma.pedido.count({
       where: { createdAt: { gte: desde }, status: "CANCELADO" },
     }),
+    // Repasse ao entregador: taxa das entregas (DELIVERY) já ENTREGUES hoje.
+    prisma.pedido.aggregate({
+      _sum: { taxaEntrega: true },
+      _count: true,
+      where: {
+        createdAt: { gte: desde },
+        status: "ENTREGUE",
+        tipoEntrega: "DELIVERY",
+      },
+    }),
   ]);
-  return { recebidos, entregues, cancelados };
+  return {
+    recebidos,
+    entregues,
+    cancelados,
+    taxasEntregaHoje:
+      entregas._sum.taxaEntrega === null ? 0 : Number(entregas._sum.taxaEntrega),
+    qtdEntregasHoje: entregas._count,
+  };
 }
 
 /** Faturamento de um mês "YYYY-MM" (apenas pedidos confirmados). */

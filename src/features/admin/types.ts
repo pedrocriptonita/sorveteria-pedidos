@@ -118,6 +118,10 @@ export interface DashboardHoje {
   recebidos: number;
   entregues: number;
   cancelados: number;
+  /** Soma das taxas de entrega dos pedidos DELIVERY entregues hoje (repasse ao entregador). */
+  taxasEntregaHoje: number;
+  /** Quantidade de entregas (DELIVERY entregues hoje). */
+  qtdEntregasHoje: number;
 }
 
 /** Faturamento de um mês (apenas pedidos confirmados). */

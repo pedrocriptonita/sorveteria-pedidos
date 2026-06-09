@@ -64,6 +64,24 @@ export default async function PedidosAdminPage({
             </div>
           ))}
         </div>
+
+        {/* Repasse ao entregador (taxas das entregas concluídas hoje) */}
+        <div className="flex items-end justify-between rounded-xl border border-neutral-200 bg-gradient-to-br from-blue-50 to-white p-4 shadow-sm dark:border-neutral-800 dark:from-blue-950 dark:to-neutral-900">
+          <div className="flex flex-col">
+            <span className="flex items-center gap-1.5 text-xs text-neutral-500">
+              <span className="material-symbols-outlined text-[16px]">
+                two_wheeler
+              </span>
+              A pagar ao entregador (hoje)
+            </span>
+            <span className="text-3xl font-bold text-blue-600">
+              {formatBRL(hoje.taxasEntregaHoje)}
+            </span>
+          </div>
+          <span className="text-sm text-neutral-500">
+            {hoje.qtdEntregasHoje} entrega(s)
+          </span>
+        </div>
       </section>
 
       {/* Histórico mensal */}
