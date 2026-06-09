@@ -55,6 +55,8 @@ export interface ConfigLojaView {
   tipoTaxa: "FIXA" | "POR_BAIRRO";
   taxaFixa: number | null;
   pedidoMinimo: number | null;
+  /** Bairros atendidos (só quando tipoTaxa = POR_BAIRRO). */
+  bairros: { nome: string; taxa: number }[];
 }
 
 // ---------------------------------------------------------------------------

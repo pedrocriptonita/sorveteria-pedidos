@@ -12,12 +12,24 @@ export async function getConfigLoja() {
 export async function getConfigLojaView(): Promise<ConfigLojaView | null> {
   const cfg = await getConfigLoja();
   if (!cfg) return null;
+
+  // Bairros atendidos só importam quando a taxa é por bairro.
+  const zonas =
+    cfg.tipoTaxa === "POR_BAIRRO"
+      ? await prisma.zonaEntrega.findMany({
+          where: { ativo: true, deletedAt: null },
+          orderBy: { bairro: "asc" },
+          select: { bairro: true, taxa: true },
+        })
+      : [];
+
   return {
     pausado: cfg.pausado,
     aberta: estaAberta(parseHorarios(cfg.horarios)),
     tipoTaxa: cfg.tipoTaxa,
     taxaFixa: cfg.taxaFixa === null ? null : Number(cfg.taxaFixa),
     pedidoMinimo: cfg.pedidoMinimo === null ? null : Number(cfg.pedidoMinimo),
+    bairros: zonas.map((z) => ({ nome: z.bairro, taxa: Number(z.taxa) })),
   };
 }
 

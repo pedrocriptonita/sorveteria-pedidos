@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { requireCozinha } from "@/lib/auth/session";
 import { enfileirarImpressao } from "@/lib/print/queue";
 import { comandaDePedido } from "@/features/pedido/comanda";
+import { enviarMensagem, formatarTelefone } from "@/lib/whatsapp";
 import { proximoPasso } from "./status";
 
 /**
@@ -20,7 +21,12 @@ export async function avancarStatusAction(formData: FormData) {
 
   const pedido = await prisma.pedido.findUnique({
     where: { id: pedidoId },
-    select: { status: true, tipoEntrega: true },
+    select: {
+      status: true,
+      tipoEntrega: true,
+      numero: true,
+      cliente: { select: { nome: true, telefone: true } },
+    },
   });
   if (!pedido) return;
 
@@ -37,6 +43,21 @@ export async function avancarStatusAction(formData: FormData) {
       where: { pedidoId, forma: "DINHEIRO", status: "AGUARDANDO" },
       data: { status: "CONFIRMADO", confirmadoEm: new Date() },
     });
+  }
+
+  // Avisa o cliente no WhatsApp quando o pedido sai para entrega (best-effort).
+  if (passo.proximo === "SAIU_PARA_ENTREGA") {
+    try {
+      await enviarMensagem(
+        formatarTelefone(pedido.cliente.telefone),
+        `Olá, ${pedido.cliente.nome}! 🛵 Seu pedido #${pedido.numero} saiu para entrega e já está a caminho. 🍦`,
+      );
+    } catch (err) {
+      console.error(
+        "[WhatsApp] falha ao avisar saída para entrega:",
+        (err as Error).message,
+      );
+    }
   }
 
   revalidatePath("/cozinha");

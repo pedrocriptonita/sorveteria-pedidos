@@ -38,8 +38,10 @@ export function CheckoutForm({ config }: { config: ConfigLojaView | null }) {
   const taxa = useMemo(() => {
     if (tipoEntrega === "RETIRADA") return 0;
     if (config?.tipoTaxa === "FIXA") return config.taxaFixa ?? 0;
-    return null; // POR_BAIRRO: calculada no servidor
-  }, [tipoEntrega, config]);
+    // POR_BAIRRO: taxa do bairro escolhido na lista cadastrada pelo admin.
+    const zona = config?.bairros.find((b) => b.nome === bairro);
+    return zona ? zona.taxa : null;
+  }, [tipoEntrega, config, bairro]);
 
   const total = taxa === null ? null : subtotal + taxa;
 
@@ -152,12 +154,34 @@ export function CheckoutForm({ config }: { config: ConfigLojaView | null }) {
               value={endereco}
               onChange={(e) => setEndereco(e.target.value)}
             />
-            <input
-              className={inputClass}
-              placeholder="Bairro"
-              value={bairro}
-              onChange={(e) => setBairro(e.target.value)}
-            />
+            {config?.tipoTaxa === "POR_BAIRRO" ? (
+              config.bairros.length > 0 ? (
+                <select
+                  className={inputClass}
+                  value={bairro}
+                  onChange={(e) => setBairro(e.target.value)}
+                >
+                  <option value="">Selecione o bairro de entrega</option>
+                  {config.bairros.map((b) => (
+                    <option key={b.nome} value={b.nome}>
+                      {b.nome} — {formatBRL(b.taxa)}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <p className="rounded-md bg-accent px-3 py-2 text-sm text-accent-foreground">
+                  Nenhum bairro disponível para entrega no momento. Escolha
+                  retirar na loja.
+                </p>
+              )
+            ) : (
+              <input
+                className={inputClass}
+                placeholder="Bairro"
+                value={bairro}
+                onChange={(e) => setBairro(e.target.value)}
+              />
+            )}
             <input
               className={inputClass}
               placeholder="Complemento (opcional)"
@@ -230,7 +254,7 @@ export function CheckoutForm({ config }: { config: ConfigLojaView | null }) {
             {tipoEntrega === "RETIRADA"
               ? formatBRL(0)
               : taxa === null
-                ? "calculada na confirmação"
+                ? "selecione o bairro"
                 : formatBRL(taxa)}
           </span>
         </div>
