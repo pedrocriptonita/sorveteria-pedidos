@@ -117,11 +117,6 @@ export function PedidosHub({ config }: { config: ConfigLojaView | null }) {
       {itens.length > 0 ? (
         <section className="flex flex-col gap-3">
           <h2 className="font-semibold">Finalizar pedido</h2>
-          {config?.pausado ? (
-            <p className="rounded-md border border-destructive/30 bg-accent px-3 py-2 text-sm text-accent-foreground">
-              A loja está pausada no momento e não está recebendo pedidos.
-            </p>
-          ) : null}
           <CheckoutForm config={config} />
         </section>
       ) : (

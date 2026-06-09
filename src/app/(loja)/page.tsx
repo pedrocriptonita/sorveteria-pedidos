@@ -1,4 +1,5 @@
 import { getCardapio } from "@/features/catalogo/data";
+import { getConfigLojaView } from "@/features/pedido/config";
 import { CategoriasNav } from "@/features/catalogo/components/categorias-nav";
 import { ListaProdutos } from "@/features/catalogo/components/lista-produtos";
 import { SubcategoriaCollapsible } from "@/features/catalogo/components/subcategoria-collapsible";
@@ -6,7 +7,12 @@ import { SubcategoriaCollapsible } from "@/features/catalogo/components/subcateg
 export const dynamic = "force-dynamic";
 
 export default async function CardapioPage() {
-  const cardapio = await getCardapio();
+  const [cardapio, config] = await Promise.all([
+    getCardapio(),
+    getConfigLojaView(),
+  ]);
+
+  const fechada = config ? config.pausado || !config.aberta : false;
 
   if (cardapio.length === 0) {
     return (
@@ -22,6 +28,15 @@ export default async function CardapioPage() {
 
   return (
     <div className="flex flex-col gap-6">
+      {fechada ? (
+        <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <span className="font-semibold">
+            {config?.pausado ? "Loja pausada." : "Loja fechada agora."}
+          </span>{" "}
+          Você pode ver o cardápio, mas não dá para finalizar pedidos no momento.
+        </div>
+      ) : null}
+
       {/* Barra de categorias fixa (sticky) com scroll-spy */}
       <CategoriasNav
         categorias={cardapio.map((c) => ({ id: c.id, nome: c.nome }))}

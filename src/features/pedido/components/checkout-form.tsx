@@ -43,6 +43,12 @@ export function CheckoutForm({ config }: { config: ConfigLojaView | null }) {
 
   const total = taxa === null ? null : subtotal + taxa;
 
+  // Loja indisponível: pausa manual ou fora do horário de funcionamento.
+  const lojaIndisponivel = config ? config.pausado || !config.aberta : false;
+  const msgIndisponivel = config?.pausado
+    ? "A loja está pausada no momento e não está recebendo pedidos."
+    : "A loja está fechada no momento. Volte no horário de funcionamento.";
+
   function enviar() {
     setErro(null);
     if (itens.length === 0) {
@@ -96,6 +102,12 @@ export function CheckoutForm({ config }: { config: ConfigLojaView | null }) {
 
   return (
     <div className="flex flex-col gap-6">
+      {lojaIndisponivel ? (
+        <p className="rounded-md border border-destructive/30 bg-accent px-3 py-2 text-sm text-accent-foreground">
+          {msgIndisponivel}
+        </p>
+      ) : null}
+
       <section className="flex flex-col gap-3">
         <h2 className="font-semibold">Seus dados</h2>
         <input
@@ -235,9 +247,13 @@ export function CheckoutForm({ config }: { config: ConfigLojaView | null }) {
         size="lg"
         className="w-full"
         onClick={enviar}
-        disabled={pending}
+        disabled={pending || lojaIndisponivel}
       >
-        {pending ? "Enviando…" : "Confirmar pedido"}
+        {pending
+          ? "Enviando…"
+          : lojaIndisponivel
+            ? "Indisponível no momento"
+            : "Confirmar pedido"}
       </Button>
     </div>
   );

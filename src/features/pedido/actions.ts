@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { getPsp } from "@/lib/psp";
 import { enfileirarImpressao } from "@/lib/print/queue";
 import { getConfigLoja, calcularTaxaEntrega } from "./config";
+import { estaAberta, parseHorarios } from "./horario";
 import { recomputarItens } from "./pricing-server";
 import { comandaDeItens } from "./comanda";
 import { checkoutSchema } from "./schema";
@@ -47,6 +48,9 @@ export async function criarPedido(
   const cfg = await getConfigLoja();
   if (cfg?.pausado) {
     return { ok: false, erro: "A loja está pausada no momento." };
+  }
+  if (!estaAberta(parseHorarios(cfg?.horarios))) {
+    return { ok: false, erro: "A loja está fechada no momento. Volte no horário de funcionamento." };
   }
 
   // 1) Recalcula itens (anti-fraude).

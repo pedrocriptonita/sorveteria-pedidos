@@ -1,4 +1,5 @@
 import type { TipoGrupo } from "@/features/catalogo/types";
+import type { Horarios } from "@/features/pedido/horario";
 
 /** Visões do catálogo para o admin (mostram inativos/indisponíveis; só ocultam soft-deletados). */
 
@@ -72,6 +73,7 @@ export interface ConfigLojaAdmin {
   id: string;
   nomeLoja: string | null;
   pausado: boolean;
+  horarios: Horarios;
   tipoTaxa: "FIXA" | "POR_BAIRRO";
   taxaFixa: number | null;
   pedidoMinimo: number | null;

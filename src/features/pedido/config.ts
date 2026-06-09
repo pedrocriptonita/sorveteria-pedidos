@@ -1,5 +1,6 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
+import { estaAberta, parseHorarios } from "./horario";
 import type { ConfigLojaView, TipoEntrega } from "./types";
 
 /** Config da loja (linha única). null se ainda não foi criada (rode o seed). */
@@ -13,6 +14,7 @@ export async function getConfigLojaView(): Promise<ConfigLojaView | null> {
   if (!cfg) return null;
   return {
     pausado: cfg.pausado,
+    aberta: estaAberta(parseHorarios(cfg.horarios)),
     tipoTaxa: cfg.tipoTaxa,
     taxaFixa: cfg.taxaFixa === null ? null : Number(cfg.taxaFixa),
     pedidoMinimo: cfg.pedidoMinimo === null ? null : Number(cfg.pedidoMinimo),

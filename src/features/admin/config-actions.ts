@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth/session";
 import { garantirConfig } from "./operacao-data";
@@ -29,6 +30,23 @@ export async function salvarConfigLoja(fd: FormData) {
       taxaFixa: numeroOpc(fd, "taxaFixa"),
       pedidoMinimo: numeroOpc(fd, "pedidoMinimo"),
     },
+  });
+  revalidatePath(CONFIG);
+}
+
+/** Salva os horários de funcionamento (7 dias + flag "aplicar"). */
+export async function salvarHorarios(fd: FormData) {
+  await requireAdmin();
+  const config = await garantirConfig();
+  const ativo = fd.get("ativo") != null;
+  const dias = Array.from({ length: 7 }, (_, i) => ({
+    aberto: fd.get(`aberto_${i}`) != null,
+    abre: str(fd, `abre_${i}`) || "10:00",
+    fecha: str(fd, `fecha_${i}`) || "22:00",
+  }));
+  await prisma.configLoja.update({
+    where: { id: config.id },
+    data: { horarios: { ativo, dias } as unknown as Prisma.InputJsonValue },
   });
   revalidatePath(CONFIG);
 }

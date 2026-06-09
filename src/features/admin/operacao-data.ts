@@ -1,5 +1,6 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
+import { parseHorarios } from "@/features/pedido/horario";
 import type {
   ClienteAdmin,
   ConfigLojaAdmin,
@@ -25,6 +26,7 @@ export async function getConfigLojaAdmin(): Promise<ConfigLojaAdmin> {
     id: c.id,
     nomeLoja: c.nomeLoja,
     pausado: c.pausado,
+    horarios: parseHorarios(c.horarios),
     tipoTaxa: c.tipoTaxa,
     taxaFixa: c.taxaFixa === null ? null : Number(c.taxaFixa),
     pedidoMinimo: c.pedidoMinimo === null ? null : Number(c.pedidoMinimo),

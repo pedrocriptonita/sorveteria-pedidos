@@ -126,6 +126,7 @@ docs/                    # FASES.md (validação) · MELHORIAS.md (backlog Fase 
 9. **Polimento (performance, segurança, observabilidade, UX)** 🔄 _em andamento_
    - ✅ RLS em todas as tabelas · rate-limit no checkout · token em tempo constante.
    - ✅ Validação Zod · fim do N+1 · testes do motor de preço · CI com `npm ci`/test.
-   - ⏳ Produto: banners, horários, substituição de item, refino do KDS.
+   - ✅ Horários de funcionamento (por dia, fuso de Brasília, bloqueio no checkout).
+   - ⏳ Produto: banners, substituição de item, refino do KDS.
    - ⏳ Demais itens de *hardening*: ver [docs/MELHORIAS.md](docs/MELHORIAS.md).
 ```

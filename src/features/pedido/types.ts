@@ -50,6 +50,8 @@ export interface ItemRecalculado {
 /** Config da loja exposta ao checkout (client). */
 export interface ConfigLojaView {
   pausado: boolean;
+  /** Loja aberta agora (considerando os horários de funcionamento). */
+  aberta: boolean;
   tipoTaxa: "FIXA" | "POR_BAIRRO";
   taxaFixa: number | null;
   pedidoMinimo: number | null;

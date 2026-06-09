@@ -4,11 +4,22 @@ import {
   editarZona,
   excluirZona,
   salvarConfigLoja,
+  salvarHorarios,
   togglePausado,
   toggleZonaAtivo,
 } from "@/features/admin/config-actions";
 
 export const dynamic = "force-dynamic";
+
+const DIAS_SEMANA = [
+  "Domingo",
+  "Segunda",
+  "Terça",
+  "Quarta",
+  "Quinta",
+  "Sexta",
+  "Sábado",
+];
 
 const input =
   "rounded-md border border-neutral-300 px-2 py-1 text-sm outline-none focus:border-neutral-900 dark:border-neutral-700 dark:bg-neutral-900";
@@ -99,6 +110,58 @@ export default async function ConfigPage() {
         </p>
         <button className={`${btnDark} self-start`} type="submit">
           Salvar
+        </button>
+      </form>
+
+      {/* Horários de funcionamento */}
+      <form
+        action={salvarHorarios}
+        className="flex flex-col gap-3 rounded-lg border border-neutral-200 p-4 dark:border-neutral-800"
+      >
+        <h2 className="font-semibold">Horários de funcionamento</h2>
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            name="ativo"
+            defaultChecked={config.horarios.ativo}
+          />
+          Aplicar horários (fora deles, a loja não recebe pedidos)
+        </label>
+        <div className="flex flex-col gap-2">
+          {DIAS_SEMANA.map((nome, i) => (
+            <div key={i} className="flex flex-wrap items-center gap-2 text-sm">
+              <label className="flex w-32 items-center gap-1">
+                <input
+                  type="checkbox"
+                  name={`aberto_${i}`}
+                  defaultChecked={config.horarios.dias[i].aberto}
+                />
+                {nome}
+              </label>
+              <input
+                type="time"
+                name={`abre_${i}`}
+                defaultValue={config.horarios.dias[i].abre}
+                className={input}
+              />
+              <span className="text-neutral-500">às</span>
+              <input
+                type="time"
+                name={`fecha_${i}`}
+                defaultValue={config.horarios.dias[i].fecha}
+                className={input}
+              />
+            </div>
+          ))}
+        </div>
+        <p className="text-xs text-neutral-400">
+          Fuso de Brasília. Enquanto “Aplicar” estiver desmarcado, a loja aceita
+          pedidos a qualquer hora (respeitando a pausa manual). Para virar a
+          noite (ex.: 18:00 às 02:00), basta a hora de fechar ser menor que a de
+          abrir.
+        </p>
+        <button className={`${btnDark} self-start`} type="submit">
+          Salvar horários
         </button>
       </form>
 
