@@ -41,6 +41,20 @@ export function MontagemForm({
     () => linhaEdicao?.observacao ?? "",
   );
 
+  // Todos os grupos começam abertos (set vazio = nenhum colapsado)
+  const [gruposColapsados, setGruposColapsados] = useState<Set<string>>(
+    () => new Set<string>(),
+  );
+
+  function toggleColapso(grupoId: string) {
+    setGruposColapsados((prev) => {
+      const next = new Set(prev);
+      if (next.has(grupoId)) next.delete(grupoId);
+      else next.add(grupoId);
+      return next;
+    });
+  }
+
   const resultado = useMemo(
     () => calcularPreco(produto, config),
     [produto, config],
@@ -131,60 +145,80 @@ export function MontagemForm({
         const selecionados = config.selecoes[grupo.id] ?? [];
         const noMaximo =
           grupo.max !== null && selecionados.length >= grupo.max;
+        const colapsado = gruposColapsados.has(grupo.id);
 
         return (
           <fieldset key={grupo.id} className="flex flex-col gap-2">
-            <legend className="mb-1 font-medium">
-              {grupo.nome}
-              {grupo.obrigatorio ? (
-                <span className="ml-1 text-destructive">*</span>
-              ) : null}
-            </legend>
-            <p className="text-xs text-muted-foreground">
-              {grupo.tipo === "UNICO" ? "Escolha 1" : "Escolha vários"}
-              {grupo.cotaGratis > 0
-                ? ` · ${grupo.cotaGratis} grátis`
-                : ""}
-              {grupo.max !== null ? ` · até ${grupo.max}` : ""}
-            </p>
-
-            {grupo.itens.map((item) => {
-              const marcado = selecionados.includes(item.id);
-              const desabilitado =
-                !item.disponivel ||
-                (grupo.tipo === "MULTIPLO" && noMaximo && !marcado);
-              return (
-                <label
-                  key={item.id}
-                  className={`flex items-center justify-between rounded-md border border-border px-3 py-2 ${
-                    desabilitado
-                      ? "cursor-not-allowed opacity-50"
-                      : "cursor-pointer"
-                  }`}
-                >
-                  <span className="flex items-center gap-2 text-sm">
-                    <input
-                      type={grupo.tipo === "UNICO" ? "radio" : "checkbox"}
-                      name={`grupo-${grupo.id}`}
-                      checked={marcado}
-                      disabled={desabilitado}
-                      onChange={() => toggleItem(grupo, item.id)}
-                    />
-                    {item.nome}
-                    {!item.disponivel ? (
-                      <span className="text-xs text-muted-foreground">
-                        (esgotado)
-                      </span>
-                    ) : null}
-                  </span>
-                  {item.precoExtra > 0 ? (
-                    <span className="text-sm text-muted-foreground">
-                      + {formatBRL(item.precoExtra)}
-                    </span>
+            <legend className="w-full">
+              <button
+                type="button"
+                onClick={() => toggleColapso(grupo.id)}
+                className="flex w-full items-center justify-between rounded-md bg-red-400 px-3 py-2 text-left font-medium text-white transition hover:bg-red-500"
+              >
+                <span>
+                  {grupo.nome}
+                  {grupo.obrigatorio ? (
+                    <span className="ml-1 text-red-200">*</span>
                   ) : null}
-                </label>
-              );
-            })}
+                </span>
+                <span className="flex items-center gap-1.5 text-xs">
+                  {selecionados.length > 0 && (
+                    <span className="rounded-full bg-white px-1.5 py-0.5 text-[10px] font-bold text-red-600">
+                      {selecionados.length}
+                    </span>
+                  )}
+                  <span className="text-base">{colapsado ? "▶" : "▼"}</span>
+                </span>
+              </button>
+            </legend>
+
+            {!colapsado && (
+              <>
+                <p className="text-xs text-muted-foreground">
+                  {grupo.tipo === "UNICO" ? "Escolha 1" : "Escolha vários"}
+                  {grupo.cotaGratis > 0 ? ` · ${grupo.cotaGratis} grátis` : ""}
+                  {grupo.max !== null ? ` · até ${grupo.max}` : ""}
+                </p>
+
+                {grupo.itens.map((item) => {
+                  const marcado = selecionados.includes(item.id);
+                  const desabilitado =
+                    !item.disponivel ||
+                    (grupo.tipo === "MULTIPLO" && noMaximo && !marcado);
+                  return (
+                    <label
+                      key={item.id}
+                      className={`flex items-center justify-between rounded-md border border-border px-3 py-2 ${
+                        desabilitado
+                          ? "cursor-not-allowed opacity-50"
+                          : "cursor-pointer"
+                      }`}
+                    >
+                      <span className="flex items-center gap-2 text-sm">
+                        <input
+                          type={grupo.tipo === "UNICO" ? "radio" : "checkbox"}
+                          name={`grupo-${grupo.id}`}
+                          checked={marcado}
+                          disabled={desabilitado}
+                          onChange={() => toggleItem(grupo, item.id)}
+                        />
+                        {item.nome}
+                        {!item.disponivel ? (
+                          <span className="text-xs text-muted-foreground">
+                            (esgotado)
+                          </span>
+                        ) : null}
+                      </span>
+                      {item.precoExtra > 0 ? (
+                        <span className="text-sm text-muted-foreground">
+                          + {formatBRL(item.precoExtra)}
+                        </span>
+                      ) : null}
+                    </label>
+                  );
+                })}
+              </>
+            )}
           </fieldset>
         );
       })}
