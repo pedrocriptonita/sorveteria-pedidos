@@ -169,63 +169,87 @@ export default async function CatalogoAdminPage() {
             </form>
           </div>
 
-          {/* Produtos da categoria */}
-          <ul className="flex flex-col divide-y divide-neutral-100 dark:divide-neutral-800">
-            {cat.produtos.length === 0 ? (
-              <li className="py-2 text-sm text-neutral-400">
-                Nenhum produto nesta categoria.
-              </li>
-            ) : (
-              cat.produtos.map((p) => (
-                <li
-                  key={p.id}
-                  className="flex flex-wrap items-center justify-between gap-2 py-2"
-                >
-                  <div className="flex items-center gap-2 text-sm">
-                    <span className="font-medium">{p.nome}</span>
-                    {p.subcategoriaId ? (
-                      <span className="rounded bg-primary/10 px-1.5 py-0.5 text-xs text-primary">
-                        {cat.subcategorias.find(
-                          (s) => s.id === p.subcategoriaId,
-                        )?.nome ?? "subcategoria"}
+          {/* Produtos da categoria, AGRUPADOS por subcategoria (na ordem das
+              subcategorias). Produtos sem subcategoria vão para um grupo final. */}
+          {cat.produtos.length === 0 ? (
+            <p className="py-2 text-sm text-neutral-400">
+              Nenhum produto nesta categoria.
+            </p>
+          ) : (
+            <div className="flex flex-col gap-4">
+              {[
+                ...cat.subcategorias.map((s) => ({
+                  chave: s.id,
+                  titulo: s.nome,
+                  produtos: cat.produtos.filter((p) => p.subcategoriaId === s.id),
+                })),
+                {
+                  chave: "__sem__",
+                  titulo: "Sem subcategoria",
+                  produtos: cat.produtos.filter((p) => !p.subcategoriaId),
+                },
+              ]
+                .filter((g) => g.produtos.length > 0)
+                .map((grupo) => (
+                  <div key={grupo.chave} className="flex flex-col gap-1">
+                    <span className="text-xs font-semibold uppercase tracking-wide text-primary">
+                      {grupo.titulo}{" "}
+                      <span className="font-normal text-neutral-400">
+                        ({grupo.produtos.length})
                       </span>
-                    ) : null}
-                    {p.montavel ? (
-                      <span className="rounded bg-neutral-100 px-1.5 py-0.5 text-xs text-neutral-500 dark:bg-neutral-800">
-                        montável
-                      </span>
-                    ) : (
-                      <span className="text-neutral-500">
-                        {formatBRL(p.preco ?? 0)}
-                      </span>
-                    )}
-                    {!p.disponivel ? (
-                      <span className="rounded bg-amber-100 px-1.5 py-0.5 text-xs text-amber-700 dark:bg-amber-950 dark:text-amber-300">
-                        esgotado
-                      </span>
-                    ) : null}
+                    </span>
+                    <ul className="flex flex-col divide-y divide-neutral-100 dark:divide-neutral-800">
+                      {grupo.produtos.map((p) => (
+                        <li
+                          key={p.id}
+                          className="flex flex-wrap items-center justify-between gap-2 py-2"
+                        >
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="font-medium">{p.nome}</span>
+                            {p.montavel ? (
+                              <span className="rounded bg-neutral-100 px-1.5 py-0.5 text-xs text-neutral-500 dark:bg-neutral-800">
+                                montável
+                              </span>
+                            ) : (
+                              <span className="text-neutral-500">
+                                {formatBRL(p.preco ?? 0)}
+                              </span>
+                            )}
+                            {!p.disponivel ? (
+                              <span className="rounded bg-amber-100 px-1.5 py-0.5 text-xs text-amber-700 dark:bg-amber-950 dark:text-amber-300">
+                                esgotado
+                              </span>
+                            ) : null}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <form action={toggleProdutoDisponivel}>
+                              <input type="hidden" name="id" value={p.id} />
+                              <button className={btn} type="submit">
+                                {p.disponivel
+                                  ? "Marcar esgotado"
+                                  : "Disponibilizar"}
+                              </button>
+                            </form>
+                            <Link href={`/admin/produto/${p.id}`} className={btn}>
+                              Editar
+                            </Link>
+                            <form action={excluirProduto}>
+                              <input type="hidden" name="id" value={p.id} />
+                              <button
+                                className={`${btn} text-red-600`}
+                                type="submit"
+                              >
+                                Excluir
+                              </button>
+                            </form>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <form action={toggleProdutoDisponivel}>
-                      <input type="hidden" name="id" value={p.id} />
-                      <button className={btn} type="submit">
-                        {p.disponivel ? "Marcar esgotado" : "Disponibilizar"}
-                      </button>
-                    </form>
-                    <Link href={`/admin/produto/${p.id}`} className={btn}>
-                      Editar
-                    </Link>
-                    <form action={excluirProduto}>
-                      <input type="hidden" name="id" value={p.id} />
-                      <button className={`${btn} text-red-600`} type="submit">
-                        Excluir
-                      </button>
-                    </form>
-                  </div>
-                </li>
-              ))
-            )}
-          </ul>
+                ))}
+            </div>
+          )}
 
           {/* Novo produto */}
           <form
