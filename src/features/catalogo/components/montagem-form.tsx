@@ -11,6 +11,7 @@ import {
 import type { GrupoOpcaoView, ProdutoView, SelecaoConfig } from "../types";
 import { formatBRL } from "@/lib/format";
 import { Button } from "@/components/ui/button";
+import { agendarToast } from "./toast-global";
 
 export function MontagemForm({
   produto,
@@ -109,10 +110,12 @@ export function MontagemForm({
     };
     if (editando) {
       substituir(linhaIdEdicao!, item);
+      router.push("/carrinho");
     } else {
       adicionar(item);
+      agendarToast("Adicionado ao carrinho!");
+      router.push("/");
     }
-    router.push("/carrinho");
   }
 
   return (

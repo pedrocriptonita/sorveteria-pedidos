@@ -45,6 +45,8 @@ export function ProdutoCard({
             priority={priority}
             className="object-cover"
             sizes="(max-width: 768px) 50vw, 200px"
+            placeholder="blur"
+            blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZmRmMWYwIi8+PC9zdmc+"
           />
         ) : (
           <FotoPlaceholder />

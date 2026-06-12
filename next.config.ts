@@ -21,9 +21,16 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   allowedDevOrigins: ["automated-unturned-previous.ngrok-free.dev"],
-  // Fotos de produtos virão do Supabase Storage (Fase 4 — catálogo).
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "3mb",
+    },
+  },
   images: {
     remotePatterns: [{ protocol: "https", hostname: "*.supabase.co" }],
+    formats: ["image/webp"],
+    // Cache de imagens otimizadas por 7 dias (evita reprocessar a cada request).
+    minimumCacheTTL: 60 * 60 * 24 * 7,
   },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];

@@ -36,3 +36,8 @@ ALTER TABLE public.itens_pedido     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.pagamentos       ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.fila_impressao   ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.usuarios_admin   ENABLE ROW LEVEL SECURITY;
+
+-- Tabela interna do Prisma (histórico de migrações). Sem dados sensíveis, mas
+-- o PostgREST a expõe como qualquer outra — habilita RLS para fechar o aviso
+-- do linter do Supabase.
+ALTER TABLE public._prisma_migrations ENABLE ROW LEVEL SECURITY;
