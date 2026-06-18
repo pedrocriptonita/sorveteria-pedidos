@@ -5,13 +5,13 @@ import { ListaProdutos } from "./lista-produtos";
 import type { LayoutCategoria, SubcategoriaView } from "../types";
 
 /**
- * Subcategoria recolhível (acordeão): mostra só o título; os produtos aparecem
- * ao clicar. Começa fechada.
+ * Subcategoria recolhível (acordeão): mostra o título e os produtos. Começa
+ * aberta por padrão; o cliente pode recolher clicando no título.
  */
 export function SubcategoriaCollapsible({
   subcategoria,
   layout,
-  defaultAberta = false,
+  defaultAberta = true,
 }: {
   subcategoria: SubcategoriaView;
   layout: LayoutCategoria;

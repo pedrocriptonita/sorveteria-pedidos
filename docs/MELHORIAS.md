@@ -50,11 +50,11 @@
 
 ## 🟠 ALTO
 
-### A1. Validação de entrada com Zod (actions + webhooks) ✅ PARCIAL (checkout feito)
+### A1. Validação de entrada com Zod (actions + webhooks) ✅ FEITO
 - **O quê:** validar payload de `criarPedido` e body dos webhooks com schema.
 - **Por quê:** hoje confia-se na forma do objeto do client/PSP. Preço já é recalculado, mas dados malformados (telefone, observação gigante) entram sem checagem.
-- **Feito:** `zod@4` promovido a dependência direta; `src/features/pedido/schema.ts` (`checkoutSchema`) com `.safeParse()` no topo de `criarPedido`.
-- **Falta:** aplicar zod aos bodies dos webhooks (`/api/webhooks/psp`, `/api/webhooks/whatsapp`) — hoje validam campos manualmente.
+- **Feito (checkout):** `zod@4` promovido a dependência direta; `src/features/pedido/schema.ts` (`checkoutSchema`) com `.safeParse()` no topo de `criarPedido`.
+- **Feito (webhooks):** `asaasWebhookSchema` em `src/lib/psp/asaas.ts` (`validarWebhook`) e `zapiWebhookSchema` em `src/app/api/webhooks/whatsapp/route.ts` — ambos com `.safeParse()` (rejeitam payload malformado com 400/null).
 - **Referência do schema:**
   ```ts
   import { z } from "zod";
@@ -132,8 +132,8 @@
 ---
 
 ## Ordem sugerida de execução
-C1 ✅ → C2 ✅ → M1 ✅ → A1 ✅(checkout) → A2 ✅ → M3 ✅ → A3 ✅(motor) → M2 ✅ → M4 ✅ → **A1(webhooks)** → 🟢 baixos.
+C1 ✅ → C2 ✅ → M1 ✅ → A1 ✅(checkout) → A2 ✅ → M3 ✅ → A3 ✅(motor) → M2 ✅ → M4 ✅ → A1 ✅(webhooks) → 🟢 baixos.
 
-> Restam: A1(webhooks — Zod nos bodies de `/api/webhooks/*`) e os 🟢 baixos
-> (headers de segurança no `next.config.ts`, `error.tsx`/`not-found.tsx`,
-> observabilidade/Sentry, a11y, mover `landing-vendas.html`).
+> Concluído também: headers de segurança no `next.config.ts`, `error.tsx`/`not-found.tsx`.
+> Restam só 🟢 baixos opcionais: rate-limit por IP (produção), observabilidade/Sentry,
+> a11y refinada, mover `landing-vendas.html` para fora do root.

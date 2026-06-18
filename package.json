@@ -21,7 +21,6 @@
     "db:rls": "dotenv -e .env.local -- tsx scripts/apply-rls.ts",
     "db:seed": "dotenv -e .env.local -- tsx scripts/seed-catalogo.ts",
     "db:limpar-pedidos": "dotenv -e .env.local -- tsx scripts/limpar-pedidos.ts",
-    "db:seed-adicionais": "dotenv -e .env.local -- tsx scripts/seed-adicionais.ts",
     "db:seed-catalogo-completo": "dotenv -e .env.local -- tsx scripts/seed-catalogo-completo.ts",
     "create-admin": "dotenv -e .env.local -- tsx scripts/create-admin.ts",
     "validate:psp": "dotenv -e .env.local -- node --conditions=react-server --import tsx scripts/validate-psp.ts",

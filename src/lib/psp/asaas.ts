@@ -1,4 +1,5 @@
 import type { StatusPagamento } from "@prisma/client";
+import { z } from "zod";
 import { env, getPspConfig } from "@/lib/env";
 import { secureEqual } from "@/lib/secure-compare";
 import type {
@@ -7,6 +8,15 @@ import type {
   EventoWebhook,
   PspProvider,
 } from "./types";
+
+// Valida só o necessário do body do webhook Asaas (id e status da cobrança).
+const asaasWebhookSchema = z.object({
+  event: z.string().optional(),
+  payment: z.object({
+    id: z.string().min(1),
+    status: z.string().min(1),
+  }),
+});
 
 /**
  * Adapter do Asaas (https://docs.asaas.com).
@@ -162,18 +172,21 @@ class AsaasProvider implements PspProvider {
     // Comparação em tempo constante (evita timing attack no segredo).
     if (!secureEqual(recebido ?? "", secret)) return null;
 
-    let body: { event?: string; payment?: AsaasPayment };
+    let bruto: unknown;
     try {
-      body = JSON.parse(rawBody);
+      bruto = JSON.parse(rawBody);
     } catch {
       return null;
     }
-    if (!body.payment?.id) return null;
+
+    const parsed = asaasWebhookSchema.safeParse(bruto);
+    if (!parsed.success) return null;
+    const { event, payment } = parsed.data;
 
     return {
-      txid: body.payment.id,
-      status: mapStatus(body.payment.status),
-      tipoOriginal: body.event ?? "DESCONHECIDO",
+      txid: payment.id,
+      status: mapStatus(payment.status),
+      tipoOriginal: event ?? "DESCONHECIDO",
     };
   }
 

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { env } from "@/lib/env";
 import {
   enviarMensagem,
@@ -7,6 +8,14 @@ import {
 } from "@/lib/whatsapp";
 
 export const dynamic = "force-dynamic";
+
+// Valida só os campos que usamos do payload do Z-API; ignora o resto.
+const zapiWebhookSchema = z.object({
+  phone: z.string().min(1).optional(),
+  fromMe: z.boolean().optional(),
+  isGroup: z.boolean().optional(),
+  type: z.string().optional(),
+});
 
 /**
  * Webhook do Z-API — recebe notificações de mensagens recebidas.
@@ -23,12 +32,18 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "não autorizado" }, { status: 401 });
   }
 
-  let body: Record<string, unknown>;
+  let bruto: unknown;
   try {
-    body = (await req.json()) as Record<string, unknown>;
+    bruto = await req.json();
   } catch {
     return NextResponse.json({ error: "body inválido" }, { status: 400 });
   }
+
+  const parsed = zapiWebhookSchema.safeParse(bruto);
+  if (!parsed.success) {
+    return NextResponse.json({ error: "payload inválido" }, { status: 400 });
+  }
+  const body = parsed.data;
 
   // Ignora: mensagem própria, grupo, status/ack e notificações que não são texto.
   if (
@@ -40,7 +55,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ ignored: true });
   }
 
-  const telefone = formatarTelefone(String(body.phone ?? ""));
+  const telefone = formatarTelefone(body.phone);
   if (!telefone) return NextResponse.json({ ignored: true });
 
   const appUrl = env.appUrl.replace(/\/$/, "");
