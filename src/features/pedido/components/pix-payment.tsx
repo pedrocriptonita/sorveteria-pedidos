@@ -15,8 +15,14 @@ interface Props {
 
 /** Formata segundos restantes como "m:ss". */
 function mmss(segundos: number): string {
-  const m = Math.floor(segundos / 60);
-  const s = segundos % 60;
+  const totalSegundos = Math.max(0, Math.floor(segundos));
+  const m = Math.floor(totalSegundos / 60);
+  const s = totalSegundos % 60;
+  if (m >= 60) {
+    const h = Math.floor(m / 60);
+    const mRest = m % 60;
+    return `${h}h ${String(mRest).padStart(2, "0")}m`;
+  }
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 

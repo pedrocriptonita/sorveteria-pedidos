@@ -130,13 +130,22 @@ class AsaasProvider implements PspProvider {
       `/payments/${payment.id}/pixQrCode`,
     );
 
+    // O Asaas em sandbox (ou por padrão) pode retornar expirationDate de 1 ano no futuro.
+    // Garantimos que expiraEm respeite o tempo configurado pela loja (PIX_EXPIRACAO_SEGUNDOS, ex: 5 min).
+    const limiteExpiracao = new Date(Date.now() + env.pixExpiracaoSegundos * 1000);
+    let expiraEm = qr.expirationDate ? new Date(qr.expirationDate) : limiteExpiracao;
+
+    if (isNaN(expiraEm.getTime()) || expiraEm.getTime() > limiteExpiracao.getTime()) {
+      expiraEm = limiteExpiracao;
+    }
+
     return {
       txid: payment.id,
       status: mapStatus(payment.status),
       valor: payment.value,
       copiaCola: qr.payload ?? "",
       qrCode: qr.encodedImage ? `data:image/png;base64,${qr.encodedImage}` : null,
-      expiraEm: qr.expirationDate ? new Date(qr.expirationDate) : null,
+      expiraEm,
     };
   }
 
