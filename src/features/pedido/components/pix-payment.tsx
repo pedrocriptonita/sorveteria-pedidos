@@ -18,11 +18,6 @@ function mmss(segundos: number): string {
   const totalSegundos = Math.max(0, Math.floor(segundos));
   const m = Math.floor(totalSegundos / 60);
   const s = totalSegundos % 60;
-  if (m >= 60) {
-    const h = Math.floor(m / 60);
-    const mRest = m % 60;
-    return `${h}h ${String(mRest).padStart(2, "0")}m`;
-  }
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
@@ -36,9 +31,14 @@ export function PixPayment({ pedidoId, qrCode, copiaCola, expiraEm }: Props) {
   // Tempo real de expiração do QR Code (atualiza a cada 1s).
   useEffect(() => {
     if (!expiraEm) return;
-    const alvo = new Date(expiraEm).getTime();
+    const alvoOriginal = new Date(expiraEm).getTime();
     function atualizar() {
-      setRestante(Math.max(0, Math.round((alvo - Date.now()) / 1000)));
+      const agora = Date.now();
+      // Se a data do banco for maior que 5 minutos a partir de agora (pedidos antigos gravados no DB/sandbox),
+      // limita a exibição a no máximo 5 minutos (300 segundos).
+      const segundosRestantes = Math.round((alvoOriginal - agora) / 1000);
+      const ajustado = Math.min(segundosRestantes, 300);
+      setRestante(Math.max(0, ajustado));
     }
     atualizar();
     const id = setInterval(atualizar, 1000);
