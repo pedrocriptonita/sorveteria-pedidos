@@ -31,15 +31,16 @@ export function PixPayment({ pedidoId, qrCode, copiaCola, expiraEm }: Props) {
   // Tempo real de expiração do QR Code (atualiza a cada 1s).
   useEffect(() => {
     if (!expiraEm) return;
-    const alvoOriginal = new Date(expiraEm).getTime();
+    const dataAlvo = new Date(expiraEm).getTime();
+    // Fixa o tempo limite ao carregar: no máximo 5 minutos (300 segundos) a partir do momento atual
+    const maxAlvo = Date.now() + 300 * 1000;
+    const alvo = Math.min(dataAlvo, maxAlvo);
+
     function atualizar() {
-      const agora = Date.now();
-      // Se a data do banco for maior que 5 minutos a partir de agora (pedidos antigos gravados no DB/sandbox),
-      // limita a exibição a no máximo 5 minutos (300 segundos).
-      const segundosRestantes = Math.round((alvoOriginal - agora) / 1000);
-      const ajustado = Math.min(segundosRestantes, 300);
-      setRestante(Math.max(0, ajustado));
+      const segs = Math.max(0, Math.round((alvo - Date.now()) / 1000));
+      setRestante(segs);
     }
+
     atualizar();
     const id = setInterval(atualizar, 1000);
     return () => clearInterval(id);
