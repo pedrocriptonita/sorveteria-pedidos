@@ -29,12 +29,12 @@ export function PixPayment({ pedidoId, qrCode, copiaCola, expiraEm }: Props) {
   const [restante, setRestante] = useState<number | null>(null);
 
   // Tempo real de expiração do QR Code (atualiza a cada 1s).
+  // O alvo é a data fixa gravada no banco (expiraEm); não depende de Date.now()
+  // no momento do mount, então recarregar a página não reinicia o cronômetro.
   useEffect(() => {
     if (!expiraEm) return;
-    const dataAlvo = new Date(expiraEm).getTime();
-    // Fixa o tempo limite ao carregar: no máximo 5 minutos (300 segundos) a partir do momento atual
-    const maxAlvo = Date.now() + 300 * 1000;
-    const alvo = Math.min(dataAlvo, maxAlvo);
+    const alvo = new Date(expiraEm).getTime();
+    if (isNaN(alvo)) return;
 
     function atualizar() {
       const segs = Math.max(0, Math.round((alvo - Date.now()) / 1000));
@@ -113,11 +113,10 @@ export function PixPayment({ pedidoId, qrCode, copiaCola, expiraEm }: Props) {
         <div className="flex flex-col items-center gap-1.5">
           {restante !== null ? (
             <span
-              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold ${
-                restante <= 60
-                  ? "bg-destructive/10 text-destructive"
-                  : "bg-accent text-accent-foreground"
-              }`}
+              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold ${restante <= 60
+                ? "bg-destructive/10 text-destructive"
+                : "bg-accent text-accent-foreground"
+                }`}
             >
               <span className="material-symbols-outlined text-[18px]">
                 timer
