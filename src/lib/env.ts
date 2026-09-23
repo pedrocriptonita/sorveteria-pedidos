@@ -31,6 +31,8 @@ export const env = {
   pspWebhookSecret: process.env.PSP_WEBHOOK_SECRET ?? "",
   /** CPF/CNPJ da loja usado como cliente da cobrança (cliente não digita CPF). */
   pspCpfCnpj: process.env.PSP_CPF_CNPJ ?? "",
+  /** USER_ID numérico da conta Mercado Pago recebedora (obrigatório para MP). */
+  pspUserId: process.env.PSP_USER_ID ?? "",
   pixExpiracaoSegundos: Number(process.env.PIX_EXPIRACAO_SEGUNDOS ?? "900"),
 
   // Impressão (server-only)

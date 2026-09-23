@@ -1,0 +1,15 @@
+{
+  "name": "devora-print-agent",
+  "version": "1.0.0",
+  "description": "Agente local de impressão ESC/POS para DevoraFood",
+  "main": "agent.js",
+  "scripts": {
+    "start": "node agent.js"
+  },
+  "dependencies": {
+    "node-thermal-printer": "^4.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
